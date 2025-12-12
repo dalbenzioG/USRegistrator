@@ -61,52 +61,62 @@ def train_one_epoch(
     scaler: GradScaler,
     use_amp: bool,
 ) -> float:
+    """
+       Single training epoch.
+
+       Supports both:
+       - image-only loss: loss(warped, fixed)
+       - DVF-aware loss:  loss(warped, fixed, ddf, gt_dvf)
+       """
     model.train()
     running_loss = 0.0
     n_samples = 0
 
     for batch in dataloader:
+        # 1) Get inputs & optional ground-truth DVF
         moving = batch["moving"].to(device, non_blocking=True)
         fixed = batch["fixed"].to(device, non_blocking=True)
 
-        # Check inputs for NaN/Inf
+        gt_dvf = batch.get("dvf", None)
+        if gt_dvf is not None:
+            gt_dvf = gt_dvf.to(device, non_blocking=True)
+        # Basic NaN/Inf checks on inputs
         if torch.isnan(moving).any() or torch.isinf(moving).any():
-            print(f"Warning: NaN/Inf detected in moving image. Skipping batch.")
+            print("Warning: NaN/Inf detected in moving image. Skipping batch.")
             continue
         if torch.isnan(fixed).any() or torch.isinf(fixed).any():
-            print(f"Warning: NaN/Inf detected in fixed image. Skipping batch.")
+            print("Warning: NaN/Inf detected in fixed image. Skipping batch.")
             continue
 
         optimizer.zero_grad(set_to_none=True)
 
+        # 2) Forward pass + loss (prefer DVF-aware interface if available)
         with autocast("cuda", enabled=use_amp):
             warped, ddf = model(moving, fixed)
-            
-            # Check model outputs for NaN/Inf
+
             if torch.isnan(warped).any() or torch.isinf(warped).any():
-                print(f"Warning: NaN/Inf detected in warped output. Skipping batch.")
+                print("Warning: NaN/Inf detected in warped output. Skipping batch.")
                 continue
             if torch.isnan(ddf).any() or torch.isinf(ddf).any():
-                print(f"Warning: NaN/Inf detected in ddf output. Skipping batch.")
+                print("Warning: NaN/Inf detected in ddf output. Skipping batch.")
                 continue
-            
-            loss = loss_fn(warped, fixed)
 
-        # Check for NaN/inf loss
-        # if torch.isnan(loss) or torch.isinf(loss):
-        #    print(f"Warning: NaN/Inf loss detected. Loss value: {loss.item()}. Skipping batch.")
-        #    continue
+            try:
+                # lncc_dvf: loss(warped, fixed, ddf, gt_dvf)
+                loss = loss_fn(warped, fixed, ddf, gt_dvf)
+            except TypeError:
+                # Backward compatibility: loss only uses images
+                loss = loss_fn(warped, fixed)
 
+        # 3) Backward pass + optimizer update
         if use_amp:
             scaler.scale(loss).backward()
-            # Gradient clipping to prevent explosion
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             scaler.step(optimizer)
             scaler.update()
         else:
             loss.backward()
-            # Gradient clipping to prevent explosion
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
 
@@ -125,54 +135,70 @@ def evaluate(
     device: torch.device,
     use_amp: bool,
 ):
+    """
+       Validation loop.
+
+       Computes:
+         - loss (same interface as in training)
+         - metrics defined in METRICS (NCC, EPE, grad_l2, MSE, MAE, etc.)
+         - a visualization batch for W&B
+    """
     model.eval()
     running_loss = 0.0
     n_samples = 0
-    metric_totals = {k: 0.0 for k in METRICS}
+    metric_totals = {name: 0.0 for name in METRICS}
     visuals = None
 
     for batch_idx, batch in enumerate(dataloader):
+        # 1) Inputs & optional ground-truth DVF
         moving = batch["moving"].to(device, non_blocking=True)
         fixed = batch["fixed"].to(device, non_blocking=True)
 
-        # Check inputs for NaN/Inf
+        gt_dvf = batch.get("dvf", None)
+        if gt_dvf is not None:
+            gt_dvf = gt_dvf.to(device, non_blocking=True)
+        # NaN/Inf checks on inputs
         if torch.isnan(moving).any() or torch.isinf(moving).any():
-            print(f"Warning: NaN/Inf detected in moving image (eval). Skipping batch.")
+            print("Warning: NaN/Inf detected in moving image (eval). Skipping batch.")
             continue
         if torch.isnan(fixed).any() or torch.isinf(fixed).any():
-            print(f"Warning: NaN/Inf detected in fixed image (eval). Skipping batch.")
+            print("Warning: NaN/Inf detected in fixed image (eval). Skipping batch.")
             continue
 
+        # 2) Forward pass + loss
         with autocast("cuda", enabled=use_amp):
             warped, ddf = model(moving, fixed)
-            
-            # Check model outputs for NaN/Inf
+
             if torch.isnan(warped).any() or torch.isinf(warped).any():
-                print(f"Warning: NaN/Inf detected in warped output (eval). Skipping batch.")
+                print("Warning: NaN/Inf detected in warped output (eval). Skipping batch.")
                 continue
             if torch.isnan(ddf).any() or torch.isinf(ddf).any():
-                print(f"Warning: NaN/Inf detected in ddf output (eval). Skipping batch.")
+                print("Warning: NaN/Inf detected in ddf output (eval). Skipping batch.")
                 continue
-            
-            loss = loss_fn(warped, fixed)
 
-        # Check for NaN/inf loss
-        # if torch.isnan(loss) or torch.isinf(loss):
-        #    print(f"Warning: NaN/Inf loss detected in evaluation. Loss value: {loss.item()}. Skipping batch.")
-        #    continue
+            try:
+                loss = loss_fn(warped, fixed, ddf, gt_dvf)
+            except TypeError:
+                loss = loss_fn(warped, fixed)
 
         bs = moving.shape[0]
         running_loss += loss.item() * bs
         n_samples += bs
 
-        # Compute metrics
+        # 3) Compute metrics
         for name, fn in METRICS.items():
             if name == "grad_l2":
+                # Gradient regularization term on predicted DVF
                 metric_totals[name] += fn(ddf) * bs
+            elif name == "epe":
+                # Endpoint error w.r.t. ground-truth DVF (if available)
+                if gt_dvf is not None:
+                    metric_totals[name] += fn(ddf, gt_dvf) * bs
             else:
+                # Image-based metrics (e.g. NCC, MSE, MAE) on warped vs fixed
                 metric_totals[name] += fn(warped, fixed) * bs
 
-        # Save first batch for visualization
+        # Save the first batch for visualization
         if batch_idx == 0:
             visuals = visualize_slices(moving, fixed, warped)
 
@@ -199,14 +225,14 @@ def main():
 
     cfg = load_config(args.config)
 
-    project = cfg.get("project", "monai-3d-registration")
-    run_name = cfg.get("run_name", cfg["model"]["name"])
-
-    wandb.init(
-        project=project,
-        config=cfg,
-        name=run_name,
-    )
+    # ---- Now cfg is loaded and we can use cfg["wandb"] ----
+    if cfg["wandb"]["enabled"]:
+        wandb.init(
+            project=cfg["wandb"]["project"],
+            name=cfg["wandb"]["run_name"],
+            config=cfg,
+            mode="offline" if cfg["wandb"]["offline"] else "online",
+        )
 
     device_str = cfg.get("device", "cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device(device_str)
@@ -225,7 +251,6 @@ def main():
     print("any NaN:", torch.isnan(item["moving"]).any().item(), torch.isnan(item["fixed"]).any().item())
     print("any Inf:", torch.isinf(item["moving"]).any().item(), torch.isinf(item["fixed"]).any().item())
     print("--------------------------------")
-
 
     train_loader = DataLoader(
         train_ds,
@@ -249,7 +274,7 @@ def main():
     optimizer_name = cfg["optimizer"].get("name", "Adam").lower()
     lr = float(cfg["optimizer"]["lr"])
     weight_decay = float(cfg["optimizer"].get("weight_decay", 0.0))
-    
+
     # Safety check: if learning rate is too high, reduce it
     if lr > 1e-3:
         print(f"Warning: Learning rate {lr} is very high. Consider using a lower value (e.g., 1e-4 or 1e-5).")
@@ -276,6 +301,7 @@ def main():
     print(f"Train samples: {len(train_ds)}, Val samples: {len(val_ds)}")
 
     last_val_loss = float("nan")
+    last_metrics = None
 
     for epoch in range(1, epochs + 1):
         train_loss = train_one_epoch(
@@ -299,6 +325,8 @@ def main():
                 use_amp=use_amp,
             )
             last_val_loss = val_loss
+            last_metrics = metrics
+
             log_dict["val/loss"] = val_loss
             for name, value in metrics.items():
                 log_dict[f"val/{name}"] = value
@@ -308,14 +336,25 @@ def main():
 
         wandb.log(log_dict)
 
+        # -------- Print more detailed metric information (including EPE) in terminal --------
+        metric_str = ""
+        if last_metrics is not None:
+            if "ncc" in last_metrics:
+                metric_str += f", val_ncc = {last_metrics['ncc']:.4f}"
+            if "epe" in last_metrics:
+                metric_str += f", val_epe = {last_metrics['epe']:.4f}"
+            if "grad_l2" in last_metrics:
+                metric_str += f", val_grad_l2 = {last_metrics['grad_l2']:.4f}"
+
         print(
             f"[Epoch {epoch:03d}/{epochs:03d}] "
             f"train_loss = {train_loss:.4f}, "
             f"val_loss = {last_val_loss:.4f}"
+            f"{metric_str}"
         )
-
-    wandb.finish()
-
+        # Finish after loop ends
+    if cfg["wandb"]["enabled"]:
+        wandb.finish()
 
 if __name__ == "__main__":
     main()
