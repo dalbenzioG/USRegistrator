@@ -6,12 +6,6 @@ import argparse
 import random
 import sys
 from pathlib import Path
-
-# Add src directory to Python path to enable usregistrator imports
-src_path = Path(__file__).parent / "src"
-if str(src_path) not in sys.path:
-    sys.path.insert(0, str(src_path))
-
 import yaml
 import numpy as np
 import torch
@@ -21,7 +15,7 @@ import wandb
 
 from datasets import build_dataset
 from models import build_model
-from usregistrator.losses import build_loss
+from losses import build_loss
 from metrics import METRICS
 
 
