@@ -161,12 +161,32 @@ training:
 ```
 USRegistrator/
 ├── train.py              # Main training script
-├── models.py             # Model definitions (GlobalNet3D, etc.)
-├── datasets.py           # Dataset implementations
-├── losses.py             # Loss function definitions
-├── metrics.py            # Evaluation metrics
+├── models/               # Registration models (modular)
+│   ├── __init__.py       # Registry & re-exports
+│   ├── registry.py       # MODEL_REGISTRY, register_model, build_model
+│   ├── globalnet3d.py    # GlobalNet3D
+│   ├── localnet3d.py     # LocalNet3D
+│   └── unetreg3d.py      # UNetReg3D
+├── datasets/             # Dataset generators (modular)
+│   ├── __init__.py       # Registry & re-exports
+│   ├── registry.py       # DATASET_REGISTRY, register_dataset, build_dataset
+│   ├── synthetic_ellipsoids.py  # Ellipsoid generator
+│   └── deepreg_synthetic.py     # DeepReg-style DVF generator
+├── losses/               # Loss functions (modular)
+│   ├── __init__.py
+│   ├── utils.py          # Registry & helpers
+│   ├── lncc.py           # Local NCC loss
+│   ├── lncc_dvf.py       # LNCC + DVF supervision
+│   └── mse.py            # MSE loss
+├── metrics/              # Evaluation metrics (modular)
+│   ├── __init__.py
+│   ├── ncc.py            # Global NCC metric
+│   ├── epe.py            # Endpoint Error
+│   ├── regression.py     # MSE / MAE metrics
+│   └── smoothness.py     # Gradient smoothness
 ├── configs/
-│   └── config_template.yaml  # Configuration template
+│   ├── config_template.yaml   # Synthetic ellipsoids config
+│   └── deepreg_synth.yaml     # DeepReg-style DVF config
 ├── monai-reg/            # Virtual environment (gitignored)
 └── wandb/                # Weights & Biases logs (gitignored)
 ```

@@ -1,18 +1,39 @@
+"""Datasets for 3D image registration."""
+
 from __future__ import annotations
 
-import importlib.util
-from pathlib import Path
+# Import all dataset modules to trigger @register_dataset decorators
+from . import synthetic_ellipsoids
+from . import deepreg_synthetic
 
+# Import registry utilities
+from .registry import (
+    DATASET_REGISTRY,
+    register_dataset,
+    build_dataset,
+)
 
-_MODULE_PATH = Path(__file__).resolve().parent.parent / "datasets.py"
-_SPEC = importlib.util.spec_from_file_location("usregistrator_datasets_file", _MODULE_PATH)
-if _SPEC is None or _SPEC.loader is None:
-    raise ImportError(f"Could not load dataset definitions from {_MODULE_PATH}")
+# Import dataset / generator classes for direct access
+from .synthetic_ellipsoids import (
+    SyntheticEllipsoidsGenerator,
+    SyntheticEllipsoidsMonaiDataset,
+)
+from .deepreg_synthetic import DeepRegLikeDVFSyntheticGenerator
 
-_MODULE = importlib.util.module_from_spec(_SPEC)
-_SPEC.loader.exec_module(_MODULE)
+# Import factory functions
+from .synthetic_ellipsoids import create_synthetic_ellipsoids
+from .deepreg_synthetic import create_deepreg_synthetic
 
-build_dataset = _MODULE.build_dataset
-DATASET_REGISTRY = _MODULE.DATASET_REGISTRY
-
-__all__ = ["build_dataset", "DATASET_REGISTRY"]
+__all__ = [
+    # Registry
+    "DATASET_REGISTRY",
+    "register_dataset",
+    "build_dataset",
+    # Generator / dataset classes
+    "SyntheticEllipsoidsGenerator",
+    "SyntheticEllipsoidsMonaiDataset",
+    "DeepRegLikeDVFSyntheticGenerator",
+    # Factory functions
+    "create_synthetic_ellipsoids",
+    "create_deepreg_synthetic",
+]
