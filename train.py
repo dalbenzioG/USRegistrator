@@ -4,13 +4,6 @@ from __future__ import annotations
 
 import argparse
 import random
-import sys
-from pathlib import Path
-
-# Add src directory to Python path to enable usregistrator imports
-src_path = Path(__file__).parent / "src"
-if str(src_path) not in sys.path:
-    sys.path.insert(0, str(src_path))
 
 import yaml
 import numpy as np
@@ -21,7 +14,7 @@ import wandb
 
 from datasets import build_dataset
 from models import build_model
-from usregistrator.losses import build_loss
+from losses import build_loss
 from metrics import METRICS
 
 
@@ -221,17 +214,8 @@ def evaluate(
 # Main entry point
 # -------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/experiment1.yaml",
-        help="Path to YAML configuration file.",
-    )
-    args = parser.parse_args()
-
-    cfg = load_config(args.config)
+def run_training(config_path: str):
+    cfg = load_config(config_path)
 
     # ---- Now cfg is loaded and we can use cfg["wandb"] ----
     if cfg["wandb"]["enabled"]:
@@ -339,10 +323,11 @@ def main():
             for name, value in metrics.items():
                 log_dict[f"val/{name}"] = value
 
-            if visuals is not None:
+            if visuals is not None and cfg["wandb"]["enabled"]:
                 wandb.log({"val/slices": visuals, "epoch": epoch})
 
-        wandb.log(log_dict)
+        if cfg["wandb"]["enabled"]:
+            wandb.log(log_dict)
 
         # -------- Print more detailed metric information (including EPE) in terminal --------
         metric_str = ""
@@ -360,9 +345,21 @@ def main():
             f"val_loss = {last_val_loss:.4f}"
             f"{metric_str}"
         )
-        # Finish after loop ends
+
     if cfg["wandb"]["enabled"]:
         wandb.finish()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/deepreg_synth.yaml",
+        help="Path to YAML configuration file.",
+    )
+    args = parser.parse_args()
+    run_training(args.config)
 
 if __name__ == "__main__":
     main()
