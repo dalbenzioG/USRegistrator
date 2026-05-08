@@ -1,7 +1,6 @@
 """LocalNet3D – MONAI LocalNet + Warp for 3D registration."""
 
 from __future__ import annotations
-
 from typing import Sequence
 
 import torch
@@ -23,7 +22,10 @@ class LocalNet3D(nn.Module):
         image_size: Sequence[int],
         in_channels: int = 2,
         num_channel_initial: int = 16,
-        depth: int = 3,
+        extract_levels: Sequence[int] = (0, 1, 2, 3),
+        out_channels: int = 3,
+        pooling: bool = True,
+        concat_skip: bool = False,
         warp_mode: str = "bilinear",
         warp_padding_mode: str = "border",
     ):
@@ -33,13 +35,16 @@ class LocalNet3D(nn.Module):
             spatial_dims=3,
             in_channels=in_channels,
             num_channel_initial=num_channel_initial,
-            depth=depth,
+            extract_levels=list(extract_levels),
+            out_channels=out_channels,
+            pooling=pooling,
+            concat_skip=concat_skip,
         )
         self.warp = Warp(mode=warp_mode, padding_mode=warp_padding_mode)
 
     def forward(self, moving: torch.Tensor, fixed: torch.Tensor):
         x = torch.cat([moving, fixed], dim=1)  # (B, 2, D, H, W)
-        ddf = self.net(x)                      # (B, 3, D, H, W)
+        ddf = self.net(x)  # (B, 3, D, H, W)
         warped = self.warp(moving, ddf)
         return warped, ddf
 
@@ -49,25 +54,21 @@ def create_localnet3d(
     image_size: Sequence[int],
     in_channels: int = 2,
     num_channel_initial: int = 16,
-    depth: int = 3,
+    extract_levels: Sequence[int] = (0, 1, 2, 3),
+    out_channels: int = 3,
+    pooling: bool = True,
+    concat_skip: bool = False,
     warp_mode: str = "bilinear",
     warp_padding_mode: str = "border",
 ) -> nn.Module:
-    """
-    Factory for LocalNet3D.
-
-    Config example:
-        model:
-          name: localnet3d
-          in_channels: 2
-          num_channel_initial: 16
-          depth: 3
-    """
     return LocalNet3D(
         image_size=image_size,
         in_channels=in_channels,
         num_channel_initial=num_channel_initial,
-        depth=depth,
+        extract_levels=extract_levels,
+        out_channels=out_channels,
+        pooling=pooling,
+        concat_skip=concat_skip,
         warp_mode=warp_mode,
         warp_padding_mode=warp_padding_mode,
     )

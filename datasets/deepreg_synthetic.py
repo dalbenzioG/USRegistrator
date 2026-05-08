@@ -15,19 +15,48 @@ from .synthetic_ellipsoids import (
 )
 
 
-# -------------------------------------------------------------------------
-# DeepReg-style synthetic DVF dataset
-# -------------------------------------------------------------------------
+def normalized_xyz_to_monai_ddf(
+    dvf_grid: torch.Tensor,
+    image_size: tuple[int, int, int],
+) -> torch.Tensor:
+    """
+    Convert normalized grid_sample displacement field
+    from (..., 3) with channel order (x, y, z)
+    into channel-first DDF tensor (3, D, H, W)
+    in MONAI-side channel order (z, y, x).
+
+    Input:
+        dvf_grid: (1, D, H, W, 3), normalized displacement, order = (x, y, z)
+
+    Output:
+        ddf_monai: (3, D, H, W), channel order = (z, y, x)
+    """
+    D, H, W = image_size
+
+    dx = dvf_grid[0, ..., 0] * ((W - 1) / 2.0)
+    dy = dvf_grid[0, ..., 1] * ((H - 1) / 2.0)
+    dz = dvf_grid[0, ..., 2] * ((D - 1) / 2.0)
+
+    # reorder to (z, y, x) and apply extra scale correction
+    ddf_monai = 0.5 * torch.stack([dz, dy, dx], dim=0)
+    return ddf_monai
+
+
 
 class DeepRegLikeDVFSyntheticGenerator:
     """
-       DeepReg-style synthetic DVF generator (PyTorch implementation).
+    DeepReg-style synthetic DVF generator (PyTorch implementation).
 
-       - Reuses SyntheticEllipsoidsGenerator to provide the fixed anatomy
-       - Generates a Gaussian random field on a coarse grid, scaled by U(0, max_disp)
-       - Upsamples to full resolution via trilinear interpolation to obtain a smooth DVF
-       - Uses identity_grid + DVF as sampling grid to generate the moving image via grid_sample
-       - Returns a dict: {"moving", "fixed", "dvf"}
+    Produces:
+      - fixed: base ellipsoid anatomy
+      - moving: fixed warped by a random smooth forward DVF
+      - dvf: ground-truth DVF for warping moving -> fixed
+
+    Conventions:
+      - internal generation uses grid_sample normalized coordinates
+      - returned dvf is converted to voxel-like displacement magnitude
+      - channel order returned = (x, y, z), shape = (3, D, H, W)
+      - moving -> fixed GT field is approximated as negative of the forward field
     """
 
     def __init__(
@@ -45,7 +74,6 @@ class DeepRegLikeDVFSyntheticGenerator:
         self.max_disp = float(max_disp)
         self.cp_spacing = int(cp_spacing)
 
-        # Ellipsoid generator: provides base anatomy (fixed image)
         self.base_generator = SyntheticEllipsoidsGenerator(
             num_samples=num_samples,
             image_size=self.image_size,
@@ -56,54 +84,51 @@ class DeepRegLikeDVFSyntheticGenerator:
 
         self.rng = np.random.RandomState(seed)
 
-        # Precompute normalized identity grid (1, D, H, W, 3)
+        # grid_sample 3D expects last dim order = (x, y, z)
         D, H, W = self.image_size
         zz = torch.linspace(-1.0, 1.0, steps=D, dtype=torch.float32)
         yy = torch.linspace(-1.0, 1.0, steps=H, dtype=torch.float32)
         xx = torch.linspace(-1.0, 1.0, steps=W, dtype=torch.float32)
+
         z, y, x = torch.meshgrid(zz, yy, xx, indexing="ij")
-        self.identity_grid = torch.stack([z, y, x], dim=-1)[None]
+        self.identity_grid = torch.stack([x, y, z], dim=-1)[None]  # (1, D, H, W, 3)
 
     def _random_dvf(self) -> torch.Tensor:
         """
-                Random DVF generation inspired by DeepReg's gen_rand_ddf:
+        Generate a random smooth DVF in normalized grid coordinates.
 
-                - Generate a Gaussian random field on a coarse grid
-                - Scale by a random strength sampled from U(0, max_disp)
-                - Upsample to full resolution using trilinear interpolation
-                - Return a DVF in normalized grid_sample coordinates: (1, D, H, W, 3)
+        Returns:
+            dvf_grid: (1, D, H, W, 3), last-dim order = (x, y, z)
         """
         D, H, W = self.image_size
 
-        # Coarse grid size
         Dc = max(1, D // self.cp_spacing)
         Hc = max(1, H // self.cp_spacing)
         Wc = max(1, W // self.cp_spacing)
 
-        # Random strength U(0, max_disp), one per channel
+        # random amplitude per channel in normalized coordinates
         low_res_strength = self.rng.uniform(
             low=0.0,
             high=self.max_disp,
             size=(1, 1, 1, 1, 3),
         ).astype(np.float32)
 
-        # Low-resolution Gaussian field (1, Dc, Hc, Wc, 3)
+        # low-resolution Gaussian random field
         low_res_field = self.rng.randn(1, Dc, Hc, Wc, 3).astype(np.float32)
         low_res_field = low_res_field * low_res_strength
 
-        # → tensor: (1, 3, Dc, Hc, Wc)
-        low_res_field = torch.from_numpy(low_res_field)
-        low_res_field = low_res_field.permute(0, 4, 1, 2, 3)
+        # to channel-first: (1, 3, Dc, Hc, Wc)
+        low_res_field = torch.from_numpy(low_res_field).permute(0, 4, 1, 2, 3)
 
-        # Upsample to full resolution: (1, 3, D, H, W)
+        # upsample to full resolution: (1, 3, D, H, W)
         dvf_full = F.interpolate(
             low_res_field,
             size=(D, H, W),
             mode="trilinear",
-            align_corners=True,
+            align_corners=False,
         )
 
-        # grid_sample expects (1, D, H, W, 3)
+        # back to grid format: (1, D, H, W, 3), order = (x, y, z)
         dvf_grid = dvf_full.permute(0, 2, 3, 4, 1)
         return dvf_grid
 
@@ -111,29 +136,33 @@ class DeepRegLikeDVFSyntheticGenerator:
         return self.num_samples
 
     def get_sample(self) -> dict:
-        # Fixed image: ellipsoid anatomy
+        # fixed image
         base = self.base_generator.get_sample()
-        fixed = base["fixed"].unsqueeze(0)   # (1,1,D,H,W)
+        fixed = base["fixed"].unsqueeze(0)  # (1, 1, D, H, W)
 
-        dvf_grid = self._random_dvf()        # (1,D,H,W,3)
-        grid = self.identity_grid + dvf_grid
+        # forward field used to synthesize moving from fixed
+        forward_dvf_grid = self._random_dvf()  # (1, D, H, W, 3), (x,y,z)
 
-        # Warp fixed to obtain moving
+        # moving = fixed warped by forward field
+        forward_grid = self.identity_grid + forward_dvf_grid
         moving = F.grid_sample(
             fixed,
-            grid,
+            forward_grid,
             mode="bilinear",
             padding_mode="border",
-            align_corners=True,
-        )  # (1,1,D,H,W)
+            align_corners=False,
+        )  # (1, 1, D, H, W)
 
-        # DVF in channel-first format (3,D,H,W)
-        dvf_ch_first = dvf_grid[0].permute(3, 0, 1, 2)
+        # approximate inverse field for moving -> fixed
+        gt_dvf_grid = -forward_dvf_grid
+
+        # convert normalized grid displacement to MONAI-side supervised DDF
+        gt_dvf = normalized_xyz_to_monai_ddf(gt_dvf_grid, self.image_size)
 
         return {
-            "moving": moving[0],   # (1,D,H,W)
-            "fixed": fixed[0],     # (1,D,H,W)
-            "dvf": dvf_ch_first,   # (3,D,H,W)
+            "moving": moving[0],   # (1, D, H, W)
+            "fixed": fixed[0],     # (1, D, H, W)
+            "dvf": gt_dvf,         # (3, D, H, W), channel order = (x, y, z)
         }
 
 
@@ -149,20 +178,6 @@ def create_deepreg_synthetic(
     seed: int = 123,
     transforms=None,
 ):
-    """
-    Factory for DeepReg-style synthetic DVF dataset.
-
-    Config example:
-        train_dataset:
-          name: deepreg_synthetic
-          image_size: [64, 64, 64]
-          num_samples: 4000
-          max_disp: 0.2
-          cp_spacing: 8
-          noise_std: 0.03
-          smooth: true
-          seed: 123
-    """
     if split.lower() == "train":
         s = seed
     elif split.lower() == "val":
