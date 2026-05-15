@@ -1,12 +1,9 @@
 # train.py
 
 from __future__ import annotations
-
+import os
 import argparse
 import random
-
-import sys
-from pathlib import Path
 import yaml
 import numpy as np
 import torch
@@ -17,7 +14,7 @@ import wandb
 from datasets import build_dataset
 from models import build_model
 from losses import build_loss
-from metrics import METRICS
+from metrics import METRICS, jacobian_determinant
 
 
 # -------------------------------------------------------------------------
@@ -38,17 +35,58 @@ def set_seed(seed: int = 42):
 
 def visualize_slices(moving: torch.Tensor, fixed: torch.Tensor, warped: torch.Tensor):
     """
-    Create W&B image list with mid slices from moving/fixed/warped volumes.
+    Log two visualization groups:
+    1) same-z comparison using fixed best z
+    2) each volume's own best z
 
-    moving, fixed, warped: (B, 1, D, H, W)
+    Inputs:
+        moving, fixed, warped: (B, 1, D, H, W)
     """
-    mid = moving.shape[2] // 2  # axial slice index
+    def norm_slice(x: np.ndarray) -> np.ndarray:
+        x = x.astype(np.float32)
+        x = x - x.min()
+        xmax = x.max()
+        if xmax > 1e-8:
+            x = x / xmax
+        return x
+
     images = []
-    for name, vol in [("moving", moving), ("fixed", fixed), ("warped", warped)]:
-        # Use first sample in batch
-        slice_img = vol[0, 0, mid].detach().cpu().numpy()
-        images.append(wandb.Image(slice_img, caption=name))
+
+    moving_3d = moving[0, 0].detach().cpu()
+    fixed_3d = fixed[0, 0].detach().cpu()
+    warped_3d = warped[0, 0].detach().cpu()
+
+    moving_best_z = int(torch.argmax(moving_3d.sum(dim=(1, 2))).item())
+    fixed_best_z = int(torch.argmax(fixed_3d.sum(dim=(1, 2))).item())
+    warped_best_z = int(torch.argmax(warped_3d.sum(dim=(1, 2))).item())
+
+    # Group 1: same-z comparison
+    same_z = fixed_best_z
+    for name, vol_3d in [("moving", moving_3d), ("fixed", fixed_3d), ("warped", warped_3d)]:
+        slice_img = vol_3d[same_z].numpy()
+        slice_img = norm_slice(slice_img)
+        images.append(
+            wandb.Image(slice_img, caption=f"[same z={same_z}] {name}")
+        )
+
+    # Group 2: each volume's own best z
+    own_best = [
+        ("moving", moving_3d, moving_best_z),
+        ("fixed", fixed_3d, fixed_best_z),
+        ("warped", warped_3d, warped_best_z),
+    ]
+    for name, vol_3d, z in own_best:
+        slice_img = vol_3d[z].numpy()
+        slice_img = norm_slice(slice_img)
+        images.append(
+            wandb.Image(slice_img, caption=f"[own best z={z}] {name}")
+        )
+
     return images
+
+def maybe_wandb_log(enabled: bool, data: dict):
+    if enabled:
+        wandb.log(data)
 
 
 # -------------------------------------------------------------------------
@@ -65,25 +103,24 @@ def train_one_epoch(
     use_amp: bool,
 ) -> float:
     """
-       Single training epoch.
+    Single training epoch.
 
-       Supports both:
-       - image-only loss: loss(warped, fixed)
-       - DVF-aware loss:  loss(warped, fixed, ddf, gt_dvf)
-       """
+    Supports both:
+    - image-only loss: loss(warped, fixed)
+    - DVF-aware loss:  loss(warped, fixed, ddf, gt_dvf)
+    """
     model.train()
     running_loss = 0.0
     n_samples = 0
 
     for batch in dataloader:
-        # 1) Get inputs & optional ground-truth DVF
         moving = batch["moving"].to(device, non_blocking=True)
         fixed = batch["fixed"].to(device, non_blocking=True)
 
         gt_dvf = batch.get("dvf", None)
         if gt_dvf is not None:
             gt_dvf = gt_dvf.to(device, non_blocking=True)
-        # Basic NaN/Inf checks on inputs
+
         if torch.isnan(moving).any() or torch.isinf(moving).any():
             print("Warning: NaN/Inf detected in moving image. Skipping batch.")
             continue
@@ -93,7 +130,6 @@ def train_one_epoch(
 
         optimizer.zero_grad(set_to_none=True)
 
-        # 2) Forward pass + loss (prefer DVF-aware interface if available)
         with autocast("cuda", enabled=use_amp):
             warped, ddf = model(moving, fixed)
 
@@ -105,13 +141,10 @@ def train_one_epoch(
                 continue
 
             try:
-                # lncc_dvf: loss(warped, fixed, ddf, gt_dvf)
                 loss = loss_fn(warped, fixed, ddf, gt_dvf)
             except TypeError:
-                # Backward compatibility: loss only uses images
                 loss = loss_fn(warped, fixed)
 
-        # 3) Backward pass + optimizer update
         if use_amp:
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
@@ -139,12 +172,13 @@ def evaluate(
     use_amp: bool,
 ):
     """
-       Validation loop.
+    Validation loop.
 
-       Computes:
-         - loss (same interface as in training)
-         - metrics defined in METRICS (NCC, EPE, grad_l2, MSE, MAE, etc.)
-         - a visualization batch for W&B
+    Computes:
+      - loss
+      - metrics defined in METRICS
+      - one visualization batch for W&B
+      - detailed debug prints for batch_idx == 0 only
     """
     model.eval()
     running_loss = 0.0
@@ -153,14 +187,13 @@ def evaluate(
     visuals = None
 
     for batch_idx, batch in enumerate(dataloader):
-        # 1) Inputs & optional ground-truth DVF
         moving = batch["moving"].to(device, non_blocking=True)
         fixed = batch["fixed"].to(device, non_blocking=True)
 
         gt_dvf = batch.get("dvf", None)
         if gt_dvf is not None:
             gt_dvf = gt_dvf.to(device, non_blocking=True)
-        # NaN/Inf checks on inputs
+
         if torch.isnan(moving).any() or torch.isinf(moving).any():
             print("Warning: NaN/Inf detected in moving image (eval). Skipping batch.")
             continue
@@ -168,7 +201,6 @@ def evaluate(
             print("Warning: NaN/Inf detected in fixed image (eval). Skipping batch.")
             continue
 
-        # 2) Forward pass + loss
         with autocast("cuda", enabled=use_amp):
             warped, ddf = model(moving, fixed)
 
@@ -188,20 +220,15 @@ def evaluate(
         running_loss += loss.item() * bs
         n_samples += bs
 
-        # 3) Compute metrics
         for name, fn in METRICS.items():
-            if name == "grad_l2":
-                # Gradient regularization term on predicted DVF
+            if name in {"grad_l2", "neg_jac_ratio", "jac_det_mean", "jac_det_min", "log_jac_std"}:
                 metric_totals[name] += fn(ddf) * bs
             elif name == "epe":
-                # Endpoint error w.r.t. ground-truth DVF (if available)
                 if gt_dvf is not None:
                     metric_totals[name] += fn(ddf, gt_dvf) * bs
             else:
-                # Image-based metrics (e.g. NCC, MSE, MAE) on warped vs fixed
                 metric_totals[name] += fn(warped, fixed) * bs
 
-        # Save the first batch for visualization
         if batch_idx == 0:
             visuals = visualize_slices(moving, fixed, warped)
 
@@ -216,11 +243,24 @@ def evaluate(
 # Main entry point
 # -------------------------------------------------------------------------
 
-def run_training(config_path: str):
-    cfg = load_config(config_path)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/deepreg_synth.yaml",
+        help="Path to YAML configuration file.",
+    )
+    args = parser.parse_args()
 
-    # ---- Now cfg is loaded and we can use cfg["wandb"] ----
-    if cfg["wandb"]["enabled"]:
+    cfg = load_config(args.config)
+    print(f"Config path: {args.config}")
+    print("---- Full Config ----")
+    print(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True))
+    print("---------------------")
+
+    wandb_enabled = bool(cfg.get("wandb", {}).get("enabled", False))
+    if wandb_enabled:
         wandb.init(
             project=cfg["wandb"]["project"],
             name=cfg["wandb"]["run_name"],
@@ -233,6 +273,15 @@ def run_training(config_path: str):
     use_amp = bool(cfg["training"].get("amp", True) and device.type == "cuda")
 
     set_seed(cfg["training"]["seed"])
+
+    # -------------------------
+    # checkpoint save settings
+    # -------------------------
+    save_dir = cfg["training"].get("save_dir", "checkpoints")
+    os.makedirs(save_dir, exist_ok=True)
+
+    best_epe = float("inf")
+    best_val_loss = float("inf")
 
     # Datasets / loaders
     train_ds = build_dataset(cfg["train_dataset"], split="train")
@@ -269,10 +318,8 @@ def run_training(config_path: str):
     lr = float(cfg["optimizer"]["lr"])
     weight_decay = float(cfg["optimizer"].get("weight_decay", 0.0))
 
-    # Safety check: if learning rate is too high, reduce it
     if lr > 1e-3:
         print(f"Warning: Learning rate {lr} is very high. Consider using a lower value (e.g., 1e-4 or 1e-5).")
-    # If NaN issues persist, try even lower: 1e-5 or 1e-6
 
     if optimizer_name == "adam":
         optimizer = torch.optim.Adam(
@@ -293,6 +340,7 @@ def run_training(config_path: str):
     print(f"Device: {device}")
     print(f"AMP: {use_amp}")
     print(f"Train samples: {len(train_ds)}, Val samples: {len(val_ds)}")
+    print(f"Checkpoint dir: {save_dir}")
 
     last_val_loss = float("nan")
     last_metrics = None
@@ -325,13 +373,80 @@ def run_training(config_path: str):
             for name, value in metrics.items():
                 log_dict[f"val/{name}"] = value
 
-            if visuals is not None and cfg["wandb"]["enabled"]:
-                wandb.log({"val/slices": visuals, "epoch": epoch})
+            if visuals is not None:
+                maybe_wandb_log(wandb_enabled, {"val/slices": visuals, "epoch": epoch})
 
-        if cfg["wandb"]["enabled"]:
-            wandb.log(log_dict)
+            # -------------------------
+            # save best by EPE
+            # -------------------------
+            if metrics is not None and "epe" in metrics:
+                if metrics["epe"] < best_epe:
+                    best_epe = metrics["epe"]
+                    best_epe_path = os.path.join(save_dir, "best_epe.pt")
+                    torch.save(
+                        {
+                            "epoch": epoch,
+                            "model_state_dict": model.state_dict(),
+                            "optimizer_state_dict": optimizer.state_dict(),
+                            "scaler_state_dict": scaler.state_dict() if use_amp else None,
+                            "config": cfg,
+                            "train_loss": train_loss,
+                            "val_loss": val_loss,
+                            "metrics": metrics,
+                            "best_epe": best_epe,
+                        },
+                        best_epe_path,
+                    )
+                    print(
+                        f"[Checkpoint] Saved best EPE model to {best_epe_path} "
+                        f"(epoch={epoch}, val_epe={best_epe:.6f})"
+                    )
 
-        # -------- Print more detailed metric information (including EPE) in terminal --------
+            # -------------------------
+            # save best by val_loss
+            # -------------------------
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_loss_path = os.path.join(save_dir, "best_val_loss.pt")
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "scaler_state_dict": scaler.state_dict() if use_amp else None,
+                        "config": cfg,
+                        "train_loss": train_loss,
+                        "val_loss": val_loss,
+                        "metrics": metrics,
+                        "best_val_loss": best_val_loss,
+                    },
+                    best_loss_path,
+                )
+                print(
+                    f"[Checkpoint] Saved best val-loss model to {best_loss_path} "
+                    f"(epoch={epoch}, val_loss={best_val_loss:.6f})"
+                )
+
+        maybe_wandb_log(wandb_enabled, log_dict)
+
+        # -------------------------
+        # save last checkpoint every epoch
+        # -------------------------
+        last_path = os.path.join(save_dir, "last.pt")
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scaler_state_dict": scaler.state_dict() if use_amp else None,
+                "config": cfg,
+                "train_loss": train_loss,
+                "last_val_loss": last_val_loss,
+                "last_metrics": last_metrics,
+            },
+            last_path,
+        )
+
         metric_str = ""
         if last_metrics is not None:
             if "ncc" in last_metrics:
@@ -340,6 +455,12 @@ def run_training(config_path: str):
                 metric_str += f", val_epe = {last_metrics['epe']:.4f}"
             if "grad_l2" in last_metrics:
                 metric_str += f", val_grad_l2 = {last_metrics['grad_l2']:.4f}"
+            if "neg_jac_ratio" in last_metrics:
+                metric_str += f", val_neg_jac = {last_metrics['neg_jac_ratio']:.4f}"
+            if "jac_det_mean" in last_metrics:
+                metric_str += f", val_jac_mean = {last_metrics['jac_det_mean']:.4f}"
+            if "log_jac_std" in last_metrics:
+                metric_str += f", val_logjac_std = {last_metrics['log_jac_std']:.4f}"
 
         print(
             f"[Epoch {epoch:03d}/{epochs:03d}] "
@@ -348,20 +469,7 @@ def run_training(config_path: str):
             f"{metric_str}"
         )
 
-    if cfg["wandb"]["enabled"]:
+    if wandb_enabled:
         wandb.finish()
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/deepreg_synth.yaml",
-        help="Path to YAML configuration file.",
-    )
-    args = parser.parse_args()
-    run_training(args.config)
-
 if __name__ == "__main__":
     main()

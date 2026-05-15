@@ -37,6 +37,7 @@ class GlobalNet3D(nn.Module):
         depth: int = 3,
         warp_mode: str = "bilinear",
         warp_padding_mode: str = "border",
+        max_disp: float = 0.2,
     ):
         super().__init__()
 
@@ -46,6 +47,7 @@ class GlobalNet3D(nn.Module):
             )
 
         self.image_size = [int(s) for s in image_size]
+        self.max_disp = float(max_disp)
 
         self.net = GlobalNet(
             image_size=self.image_size,
@@ -57,13 +59,14 @@ class GlobalNet3D(nn.Module):
 
         self.warp = Warp(mode=warp_mode, padding_mode=warp_padding_mode)
 
-        # Optional but strongly recommended:
-        # Zero-init the last conv layer inside GlobalNet
+        # Zero-init / near-zero-init convs to make initial deformation gentle
         for m in self.net.modules():
             if isinstance(m, nn.Conv3d):
                 nn.init.normal_(m.weight, std=1e-5)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
+
+        print(f"[GlobalNet3D] Using max_disp = {self.max_disp}")
 
     def forward(self, moving: torch.Tensor, fixed: torch.Tensor):
         """
@@ -76,15 +79,14 @@ class GlobalNet3D(nn.Module):
             ddf:    (B, 3, D, H, W)
         """
         x = torch.cat([moving, fixed], dim=1)  # (B, 2, D, H, W)
+
         # Predict raw displacement
-        ddf_raw = self.net(x)  # (B,3,D,H,W)
+        ddf_raw = self.net(x)  # (B, 3, D, H, W)
 
-        # ---- ① Restrict DVF into reasonable numeric range ----
-        # Use tanh + scaling
-        max_disp = 0.2  # MUST match synthetic DVF max_disp
-        ddf = torch.tanh(ddf_raw) * max_disp
+        # Restrict DVF into a configurable numeric range
+        ddf = torch.tanh(ddf_raw) * self.max_disp
 
-        # ---- ② Warp ----
+        # Warp moving -> fixed space
         warped = self.warp(moving, ddf)
 
         return warped, ddf
@@ -97,6 +99,7 @@ def create_globalnet3d(
     depth: int = 3,
     warp_mode: str = "bilinear",
     warp_padding_mode: str = "border",
+    max_disp: float = 0.2,
 ) -> nn.Module:
     """
     Factory for GlobalNet3D.
@@ -108,6 +111,7 @@ def create_globalnet3d(
           depth: 3
           warp_mode: bilinear
           warp_padding_mode: border
+          max_disp: 0.2
     """
     return GlobalNet3D(
         image_size=image_size,
@@ -115,4 +119,5 @@ def create_globalnet3d(
         depth=depth,
         warp_mode=warp_mode,
         warp_padding_mode=warp_padding_mode,
+        max_disp=max_disp,
     )
