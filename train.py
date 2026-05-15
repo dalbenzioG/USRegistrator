@@ -248,7 +248,7 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/experiment1.yaml",
+        default="configs/deepreg_synth.yaml",
         help="Path to YAML configuration file.",
     )
     args = parser.parse_args()
@@ -471,7 +471,5 @@ def main():
 
     if wandb_enabled:
         wandb.finish()
-
-
 if __name__ == "__main__":
     main()

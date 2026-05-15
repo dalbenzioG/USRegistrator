@@ -1,0 +1,56 @@
+project: "monai-3d-registration"
+image_size: [32, 32, 32]
+
+train_dataset:
+  name: deepreg_synthetic
+  image_size: [32, 32, 32]
+  num_samples: 8
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 123
+
+val_dataset:
+  name: deepreg_synthetic
+  image_size: [32, 32, 32]
+  num_samples: 2
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 456
+
+model:
+  name: globalnet3d
+  num_channel_initial: 8
+  depth: 3
+  warp_mode: bilinear
+  warp_padding_mode: border
+
+loss:
+  name: lncc_dvf
+  kernel_size: 5
+  smooth_nr: 1e-4
+  smooth_dr: 1e-2
+  image_weight: 1.0
+  dvf_weight: 0.1
+
+optimizer:
+  name: Adam
+  lr: 1e-4
+  weight_decay: 1e-5
+
+training:
+  epochs: 2
+  batch_size: 1
+  num_workers: 0
+  amp: false
+  val_every: 1
+  seed: 42
+
+wandb:
+  enabled: true
+  project: "usregistrator"
+  run_name: "deepreg_synth_tutorial"
+  offline: true
