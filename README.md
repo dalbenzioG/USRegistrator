@@ -6,6 +6,7 @@ A PyTorch-based framework for 3D medical image registration using MONAI. This re
 
 - **3D Image Registration**: Deformable registration using GlobalNet architecture
 - **Synthetic Data Generation**: Built-in synthetic ellipsoid dataset for testing
+- **Custom Dataset Support**: JSON-driven training/validation on user medical datasets
 - **Multiple Loss Functions**: Local Normalized Cross-Correlation (LNCC) and MSE
 - **Training Pipeline**: Complete training loop with validation, metrics, and logging
 - **Weights & Biases Integration**: Automatic experiment tracking and visualization
@@ -98,6 +99,14 @@ python train.py --config configs/config_template.yaml
    python train.py --config configs/my_experiment.yaml
    ```
 
+### Train on Your Own Dataset
+
+Use the custom dataset workflow documented in `custom_dataset.md` with:
+
+- JSON manifest containing `train` and `val` cases
+- YAML dataset blocks using `name: custom_dataset` and `json_file: ...`
+- Example config: `configs/custom_dataset_example.yaml`
+
 ## Configuration Guide
 
 The configuration file is a YAML file with the following sections:
@@ -171,7 +180,8 @@ USRegistrator/
 │   ├── __init__.py       # Registry & re-exports
 │   ├── registry.py       # DATASET_REGISTRY, register_dataset, build_dataset
 │   ├── synthetic_ellipsoids.py  # Ellipsoid generator
-│   └── deepreg_synthetic.py     # DeepReg-style DVF generator
+│   ├── deepreg_synthetic.py     # DeepReg-style DVF generator
+│   └── custom_dataset.py        # JSON-driven custom medical dataset
 ├── losses/               # Loss functions (modular)
 │   ├── __init__.py
 │   ├── utils.py          # Registry & helpers
@@ -186,7 +196,9 @@ USRegistrator/
 │   └── smoothness.py     # Gradient smoothness
 ├── configs/
 │   ├── config_template.yaml   # Synthetic ellipsoids config
-│   └── deepreg_synth.yaml     # DeepReg-style DVF config
+│   ├── deepreg_synth.yaml     # DeepReg-style DVF config
+│   └── custom_dataset_example.yaml  # Custom dataset config template
+├── custom_dataset.md      # Custom dataset setup and usage guide
 ├── monai-reg/            # Virtual environment (gitignored)
 └── wandb/                # Weights & Biases logs (gitignored)
 ```

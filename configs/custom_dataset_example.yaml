@@ -1,0 +1,58 @@
+project: "monai-3d-registration-custom-dataset"
+image_size: [96, 96, 96]
+
+wandb:
+  enabled: false
+  project: "usregistrator"
+  run_name: "custom_dataset_example"
+  offline: true
+
+train_dataset:
+  name: custom_dataset
+  json_file: docs/examples/custom_dataset_manifest.json
+  image_size: [96, 96, 96]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+
+val_dataset:
+  name: custom_dataset
+  json_file: docs/examples/custom_dataset_manifest.json
+  image_size: [96, 96, 96]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+
+model:
+  name: globalnet3d
+  num_channel_initial: 16
+  depth: 3
+  warp_mode: bilinear
+  warp_padding_mode: border
+
+loss:
+  name: lncc
+  kernel_size: 9
+  smooth_nr: 1e-4
+  smooth_dr: 1e-2
+
+optimizer:
+  name: Adam
+  lr: 1e-4
+  weight_decay: 1e-5
+
+training:
+  epochs: 50
+  batch_size: 2
+  num_workers: 2
+  amp: true
+  val_every: 1
+  seed: 42

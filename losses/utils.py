@@ -20,11 +20,21 @@ def register_loss(name: str):
 
 def build_loss(cfg: dict) -> nn.Module:
     """
-    Build a loss function from config:
+    Build a loss function from config.
+
+    Supported forms:
         cfg = {
             "name": "lncc",
             "patch_size": 9,    # or "kernel_size": 9
             ...
+        }
+
+        cfg = {
+            "name": "lncc_dice",
+            "params": {
+                "lncc_weight": 1.0,
+                "dice_weight": 1.0,
+            },
         }
     """
     name = cfg["name"]
@@ -33,6 +43,14 @@ def build_loss(cfg: dict) -> nn.Module:
             f"Unknown loss '{name}'. Available: {list(LOSS_REGISTRY.keys())}"
         )
     kwargs = {k: v for k, v in cfg.items() if k != "name"}
+    params = kwargs.pop("params", None)
+    if params is not None:
+        if not isinstance(params, dict):
+            raise ValueError(
+                f"Expected 'loss.params' to be a dict, got {type(params).__name__}."
+            )
+        # Keep backward compatibility: top-level kwargs override nested params keys.
+        kwargs = {**params, **kwargs}
     return LOSS_REGISTRY[name](**kwargs)
 
 

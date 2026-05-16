@@ -1,0 +1,63 @@
+project: "trusted-ct-us-debug"
+image_size: [192, 192, 192]
+
+wandb:
+  enabled: true
+  project: "usregistrator"
+  run_name: "globalnet3d_trusted"
+  offline: false
+
+train_dataset:
+  name: custom_dataset
+  json_file: configs/trusted_manifest.json
+  image_size: [192, 192, 192]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+
+val_dataset:
+  name: custom_dataset
+  json_file: configs/trusted_manifest.json
+  image_size: [192, 192, 192]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+
+model:
+  name: globalnet3d
+  num_channel_initial: 8
+  depth: 2
+  warp_mode: bilinear
+  warp_padding_mode: border
+
+loss:
+  name: lncc_dice
+  params:
+    kernel_size: 9
+    smooth_nr: 1e-4
+    smooth_dr: 1e-2
+    lncc_weight: 0.3
+    dice_weight: 1.0
+    label_warp_mode: bilinear
+    label_warp_padding_mode: border
+
+optimizer:
+  name: Adam
+  lr: 5e-5
+  weight_decay: 1e-5
+
+training:
+  epochs: 30
+  batch_size: 1
+  num_workers: 0
+  amp: false
+  val_every: 1
+  seed: 42

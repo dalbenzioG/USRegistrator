@@ -5,6 +5,7 @@ from __future__ import annotations
 # Import all dataset modules to trigger @register_dataset decorators
 from . import synthetic_ellipsoids
 from . import deepreg_synthetic
+from . import custom_dataset
 
 # Import registry utilities
 from .registry import (
@@ -23,6 +24,7 @@ from .deepreg_synthetic import DeepRegLikeDVFSyntheticGenerator
 # Import factory functions
 from .synthetic_ellipsoids import create_synthetic_ellipsoids
 from .deepreg_synthetic import create_deepreg_synthetic
+from .custom_dataset import create_custom_dataset
 
 __all__ = [
     # Registry
@@ -36,4 +38,5 @@ __all__ = [
     # Factory functions
     "create_synthetic_ellipsoids",
     "create_deepreg_synthetic",
+    "create_custom_dataset",
 ]
