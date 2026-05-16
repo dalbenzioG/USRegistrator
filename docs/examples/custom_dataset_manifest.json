@@ -1,0 +1,24 @@
+{
+  "train": [
+    {
+      "moving": "data/train/case_001/moving.nii.gz",
+      "fixed": "data/train/case_001/fixed.nii.gz",
+      "moving_label": "data/train/case_001/moving_label.nii.gz",
+      "fixed_label": "data/train/case_001/fixed_label.nii.gz",
+      "moving_mask": "data/train/case_001/moving_mask.nii.gz",
+      "fixed_mask": "data/train/case_001/fixed_mask.nii.gz",
+      "moving_landmarks": "data/train/case_001/moving_landmarks.csv",
+      "fixed_landmarks": "data/train/case_001/fixed_landmarks.csv",
+      "modality": "CT",
+      "anatomy": "abdomen"
+    }
+  ],
+  "val": [
+    {
+      "moving": "data/val/case_001/moving.nii.gz",
+      "fixed": "data/val/case_001/fixed.nii.gz",
+      "modality": "CT",
+      "anatomy": "abdomen"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 from .regression import MSEMetric, MAEMetric, mse, mae
 from .ncc import NCC, global_ncc
+from .dice import dice_score, registration_dice
 from .smoothness import GradientL2, gradient_l2
 from .epe import EPE, epe
 from .jacobian import (
@@ -18,6 +19,7 @@ METRICS = {
     "mse": mse,
     "mae": mae,
     "ncc": global_ncc,
+    "dice": registration_dice,
     "grad_l2": gradient_l2,
     "epe": epe,
     "neg_jac_ratio": neg_jac_ratio,
