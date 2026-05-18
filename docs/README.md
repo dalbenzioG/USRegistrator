@@ -4,6 +4,16 @@ Welcome to the **USRegistrator** documentation. This folder contains tutorials, 
 
 ---
 
+## Choose Your Path
+
+| If you want to… | Start here |
+|-----------------|------------|
+| Learn the pipeline on synthetic data | [Synthetic Training Tutorial](./synthetic-training/) |
+| Train with DeepReg-style DVF supervision | [DeepReg Pipeline Tutorial](./deepreg-pipeline/) |
+| Train on your own medical dataset via JSON manifest | [Custom Dataset Training](./custom-training/) |
+
+---
+
 ## 📂 Documentation Structure
 
 ### [1. Synthetic Training Tutorial](./synthetic-training/)
@@ -29,11 +39,25 @@ A guide to using the DeepReg-style synthetic DVF (Displacement Vector Field) pip
 | [Setup & Configuration](./deepreg-pipeline/02_setup_and_configuration.md) | How to configure and run the DeepReg-style pipeline |
 | [Running & Evaluating](./deepreg-pipeline/03_running_and_evaluating.md) | Training, monitoring, and interpreting results with DVF supervision |
 
+### [3. Custom Dataset Training](./custom-training/)
+
+Train and validate using your own data by setting `name: custom_dataset` and providing `train`/`val` entries in a JSON manifest.
+
+| Document | Description |
+|----------|-------------|
+| [Custom Dataset Guide](./custom-training/custom_dataset.md) | Manifest schema, multigradicon preprocessing, YAML setup, training, and troubleshooting |
+| [TRUSTED Manifest Example](../configs/trusted_manifest.json) | Example `train`/`val` JSON manifest used by custom dataset configs |
+
+Custom-dataset-specific options (`json_file`, `preprocess_style`, `ct_window`, `quantile_range`, etc.) are documented in the custom dataset guide. Shared model/loss/optimizer/training options are documented in [Configuration Reference](./synthetic-training/06_configuration_reference.md).
+
 ---
 
 ## Quick Links
 
 - **[README (project root)](../README.md)** — Project overview and quick-start
+- **[Docs Hub](./README.md)** — Overview of all documentation tracks
 - **[Config Template](../configs/config_template.yaml)** — Basic synthetic config
 - **[DeepReg Config](../configs/deepreg_synth.yaml)** — DeepReg-style config
+- **[Custom Dataset Example Config](../configs/custom_dataset_example.yaml)** — Example config for JSON-manifest training
+- **[TRUSTED Manifest Example](../configs/trusted_manifest.json)** — Example manifest format
 - **[Requirements](../requirements.txt)** — Python dependencies

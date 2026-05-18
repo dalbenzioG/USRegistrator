@@ -7,9 +7,10 @@ A PyTorch-based framework for 3D medical image registration using MONAI. This re
 - **3D Image Registration**: Deformable registration using GlobalNet architecture
 - **Synthetic Data Generation**: Built-in synthetic ellipsoid dataset for testing
 - **Custom Dataset Support**: JSON-driven training/validation on user medical datasets
-- **Multiple Loss Functions**: Local Normalized Cross-Correlation (LNCC) and MSE
+- **Multiple Loss Functions**: LNCC, MSE, and combined LNCC+Dice (`lncc_dice`)
 - **Training Pipeline**: Complete training loop with validation, metrics, and logging
 - **Weights & Biases Integration**: Automatic experiment tracking and visualization
+- **Validation Diagnostics**: Segmentation overlay slices and deformation-field diagnostics
 - **Mixed Precision Training**: AMP support for faster training on modern GPUs
 
 ## Requirements
@@ -101,11 +102,12 @@ python train.py --config configs/config_template.yaml
 
 ### Train on Your Own Dataset
 
-Use the custom dataset workflow documented in `custom_dataset.md` with:
+Use the custom dataset workflow documented in `docs/custom-training/custom_dataset.md` with:
 
 - JSON manifest containing `train` and `val` cases
 - YAML dataset blocks using `name: custom_dataset` and `json_file: ...`
 - Example config: `configs/custom_dataset_example.yaml`
+- Full docs index: `docs/README.md`
 
 ## Configuration Guide
 
@@ -187,18 +189,24 @@ USRegistrator/
 │   ├── utils.py          # Registry & helpers
 │   ├── lncc.py           # Local NCC loss
 │   ├── lncc_dvf.py       # LNCC + DVF supervision
+│   ├── combo.py          # Combined losses (e.g., LNCC + Dice)
 │   └── mse.py            # MSE loss
 ├── metrics/              # Evaluation metrics (modular)
 │   ├── __init__.py
 │   ├── ncc.py            # Global NCC metric
 │   ├── epe.py            # Endpoint Error
 │   ├── regression.py     # MSE / MAE metrics
-│   └── smoothness.py     # Gradient smoothness
+│   ├── smoothness.py     # Gradient smoothness
+│   ├── jacobian.py       # Jacobian-based deformation diagnostics
+│   └── dice.py           # Dice overlap metrics
 ├── configs/
 │   ├── config_template.yaml   # Synthetic ellipsoids config
 │   ├── deepreg_synth.yaml     # DeepReg-style DVF config
 │   └── custom_dataset_example.yaml  # Custom dataset config template
-├── custom_dataset.md      # Custom dataset setup and usage guide
+├── docs/
+│   ├── README.md          # Documentation hub (synthetic / deepreg / custom dataset)
+│   └── custom-training/
+│       └── custom_dataset.md  # Custom dataset setup and usage guide
 ├── monai-reg/            # Virtual environment (gitignored)
 └── wandb/                # Weights & Biases logs (gitignored)
 ```
@@ -219,13 +227,16 @@ USRegistrator/
 
 - **LNCC (Local Normalized Cross-Correlation)**: Intensity-based similarity metric
 - **MSE**: Mean Squared Error
+- **LNCC+Dice**: Combined image-similarity and label-overlap supervision (`lncc_dice`)
 
 ### Metrics
 
 - **MSE**: Mean Squared Error
 - **MAE**: Mean Absolute Error
 - **NCC**: Global Normalized Cross-Correlation
+- **Dice**: Segmentation overlap metric for labeled data
 - **Grad_L2**: Gradient magnitude of displacement field
+- **Jacobian Diagnostics**: Folding ratio and Jacobian statistics
 
 ## Weights & Biases Integration
 
