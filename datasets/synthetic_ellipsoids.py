@@ -114,12 +114,14 @@ class SyntheticEllipsoidsGenerator:
         # additional global noise
         img = img + torch.randn_like(img) * self.noise_std
         img = img.clamp(0.0, 1.0)
+        mask = (base > 0.5).float()
 
         return {
-            "moving": img[None],
-            "fixed": img[None].clone(),  # symmetrically defined; model must warp
+             "moving": img[None],
+             "fixed": img[None].clone(),  # symmetrically defined; model must warp
+             "moving_mask": mask[None],
+             "fixed_mask": mask[None].clone(),
         }
-
 
 # -------------------------------------------------------------------------
 # MONAI Dataset wrapper
