@@ -2,6 +2,7 @@ from .regression import MSEMetric, MAEMetric, mse, mae
 from .ncc import NCC, global_ncc
 from .dice import dice_score, registration_dice
 from .smoothness import GradientL2, gradient_l2
+from .tre import mean_tre
 from .epe import EPE, epe
 from .jacobian import (
     jacobian_determinant,
