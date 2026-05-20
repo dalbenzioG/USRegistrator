@@ -14,6 +14,65 @@ from .synthetic_ellipsoids import (
     SyntheticEllipsoidsMonaiDataset,
 )
 
+def sample_foreground_points(mask: torch.Tensor, num_points: int = 8) -> torch.Tensor:
+    """
+    mask: (1, D, H, W) or (D, H, W)
+    return: (N, 3) voxel coords in (z, y, x)
+    """
+    if mask.dim() == 4:
+        mask = mask[0]
+
+    coords = torch.nonzero(mask > 0.5, as_tuple=False)
+
+    if coords.shape[0] == 0:
+        raise ValueError("No foreground voxels found in mask when sampling points.")
+
+    if coords.shape[0] >= num_points:
+        idx = torch.randperm(coords.shape[0])[:num_points]
+        pts = coords[idx]
+    else:
+        idx = torch.randint(0, coords.shape[0], (num_points,))
+        pts = coords[idx]
+
+    return pts.float()
+
+
+def warp_points_with_forward_grid(
+    points_zyx: torch.Tensor,
+    dvf_grid: torch.Tensor,
+    image_size: tuple[int, int, int],
+) -> torch.Tensor:
+    """
+    points_zyx: (N, 3) voxel coords in (z, y, x)
+    dvf_grid: (1, D, H, W, 3), normalized disp, order (x, y, z)
+    return: (N, 3) moved points in voxel coords, still ordered (z, y, x)
+    """
+    D, H, W = image_size
+
+    z = points_zyx[:, 0]
+    y = points_zyx[:, 1]
+    x = points_zyx[:, 2]
+
+    x_norm = 2.0 * x / max(W - 1, 1) - 1.0
+    y_norm = 2.0 * y / max(H - 1, 1) - 1.0
+    z_norm = 2.0 * z / max(D - 1, 1) - 1.0
+
+    x_idx = ((x_norm + 1.0) * 0.5 * (W - 1)).round().long().clamp(0, W - 1)
+    y_idx = ((y_norm + 1.0) * 0.5 * (H - 1)).round().long().clamp(0, H - 1)
+    z_idx = ((z_norm + 1.0) * 0.5 * (D - 1)).round().long().clamp(0, D - 1)
+
+    disp_xyz = dvf_grid[0, z_idx, y_idx, x_idx, :]
+
+    dx = disp_xyz[:, 0] * ((W - 1) / 2.0)
+    dy = disp_xyz[:, 1] * ((H - 1) / 2.0)
+    dz = disp_xyz[:, 2] * ((D - 1) / 2.0)
+
+    moved_z = z + dz
+    moved_y = y + dy
+    moved_x = x + dx
+
+    moved = torch.stack([moved_z, moved_y, moved_x], dim=1)
+    return moved.float()
 
 def normalized_xyz_to_monai_ddf(
     dvf_grid: torch.Tensor,
@@ -55,7 +114,7 @@ class DeepRegLikeDVFSyntheticGenerator:
     Conventions:
       - internal generation uses grid_sample normalized coordinates
       - returned dvf is converted to voxel-like displacement magnitude
-      - channel order returned = (x, y, z), shape = (3, D, H, W)
+      - returned dvf is in MONAI-side channel order (z, y, x), shape = (3, D, H, W)
       - moving -> fixed GT field is approximated as negative of the forward field
     """
 
@@ -140,6 +199,10 @@ class DeepRegLikeDVFSyntheticGenerator:
         base = self.base_generator.get_sample()
         fixed = base["fixed"].unsqueeze(0)  # (1, 1, D, H, W)
 
+        fixed_mask = None
+        if "fixed_mask" in base:
+            fixed_mask = base["fixed_mask"].unsqueeze(0)  # (1, 1, D, H, W)
+
         # forward field used to synthesize moving from fixed
         forward_dvf_grid = self._random_dvf()  # (1, D, H, W, 3), (x,y,z)
 
@@ -153,17 +216,48 @@ class DeepRegLikeDVFSyntheticGenerator:
             align_corners=False,
         )  # (1, 1, D, H, W)
 
+        moving_mask = None
+        if fixed_mask is not None:
+           moving_mask = F.grid_sample(
+               fixed_mask.float(),
+               forward_grid,
+               mode="nearest",
+               padding_mode="border",
+               align_corners=False,
+        )
+
+       fixed_points = None
+       moving_points = None
+
+       if fixed_mask is not None:
+           fixed_points = sample_foreground_points(base["fixed_mask"], num_points=8)
+           moving_points = warp_points_with_forward_grid(
+               fixed_points,
+               forward_dvf_grid,
+               self.image_size,
+           )
+
         # approximate inverse field for moving -> fixed
         gt_dvf_grid = -forward_dvf_grid
 
         # convert normalized grid displacement to MONAI-side supervised DDF
         gt_dvf = normalized_xyz_to_monai_ddf(gt_dvf_grid, self.image_size)
 
-        return {
-            "moving": moving[0],   # (1, D, H, W)
-            "fixed": fixed[0],     # (1, D, H, W)
-            "dvf": gt_dvf,         # (3, D, H, W), channel order = (x, y, z)
+        sample = {
+           "moving": moving[0],  # (1, D, H, W)
+           "fixed": fixed[0],    # (1, D, H, W)
+            "dvf": gt_dvf,        # (3, D, H, W)
         }
+
+        if fixed_mask is not None and moving_mask is not None:
+            sample["moving_mask"] = moving_mask[0]
+            sample["fixed_mask"] = fixed_mask[0]
+
+        if fixed_points is not None and moving_points is not None:
+            sample["fixed_points"] = fixed_points
+            sample["moving_points"] = moving_points
+
+        return sample
 
 
 @register_dataset("deepreg_synthetic")
