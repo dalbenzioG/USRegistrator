@@ -16,6 +16,7 @@ from datasets import build_dataset
 from models import build_model
 from losses import build_loss
 from metrics import METRICS, jacobian_determinant
+from metrics.tre import mean_tre
 
 
 # -------------------------------------------------------------------------
@@ -339,6 +340,8 @@ def evaluate(
     ddf_l2_mean_total = 0.0
     metric_totals = {name: 0.0 for name in METRICS}
     metric_counts = {name: 0 for name in METRICS}
+    mtre_total = 0.0
+    mtre_count = 0
     visuals = None
 
     for batch_idx, batch in enumerate(dataloader):
@@ -355,6 +358,9 @@ def evaluate(
             device,
             keys=("warped_moving_label", "warped_label"),
         )
+        moving_points = _get_optional_tensor(batch, device, keys=("moving_points",))
+        fixed_points = _get_optional_tensor(batch, device, keys=("fixed_points",))
+        has_points = moving_points is not None and fixed_points is not None
 
         if torch.isnan(moving).any() or torch.isinf(moving).any():
             print("Warning: NaN/Inf detected in moving image (eval). Skipping batch.")
@@ -414,6 +420,11 @@ def evaluate(
                 metric_totals[name] += fn(warped, fixed) * bs
                 metric_counts[name] += bs
 
+        if has_points:
+            mtre_value = mean_tre(ddf, moving_points.float(), fixed_points.float())
+            mtre_total += mtre_value * bs
+            mtre_count += bs
+            
         if batch_idx == 0:
             warped_moving_label_for_vis = warped_moving_label
             if warped_moving_label_for_vis is None and moving_label is not None:
@@ -444,6 +455,10 @@ def evaluate(
     else:
         avg_metrics["ddf_abs_mean"] = float("nan")
         avg_metrics["ddf_l2_mean"] = float("nan")
+    if mtre_count > 0:
+        avg_metrics["mtre"] = mtre_total / mtre_count
+    else:
+        avg_metrics["mtre"] = float("nan")
     return avg_loss, avg_metrics, visuals
 
 
@@ -511,9 +526,15 @@ def main():
             "fixed_mask",
             "moving_landmarks",
             "fixed_landmarks",
+            "moving_points",
+            "fixed_points",
         )
         if key in item
     ]
+    if "moving_points" in item:
+        print("moving_points shape:", tuple(item["moving_points"].shape))
+    if "fixed_points" in item:
+        print("fixed_points shape:", tuple(item["fixed_points"].shape))
     if optional_keys:
         print("optional fields:", ", ".join(optional_keys))
     if "dvf" not in item:
@@ -696,6 +717,8 @@ def main():
                 metric_str += f", val_ddf_abs = {last_metrics['ddf_abs_mean']:.4f}"
             if "ddf_l2_mean" in last_metrics:
                 metric_str += f", val_ddf_l2 = {last_metrics['ddf_l2_mean']:.4f}"
+            if "mtre" in last_metrics and np.isfinite(last_metrics["mtre"]):
+                metric_str += f", val_mtre = {last_metrics['mtre']:.4f}"
 
         print(
             f"[Epoch {epoch:03d}/{epochs:03d}] "
