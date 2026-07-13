@@ -115,6 +115,24 @@ The `name` field selects the model. All other keys are passed as keyword argumen
 | `warp_mode` | `str` | No | `"bilinear"` | Warp interpolation |
 | `warp_padding_mode` | `str` | No | `"border"` | Warp padding |
 
+### `transmorph3d`
+
+TransMorph-style Swin Transformer registration network (Chen et al., 2022) built on MONAI's SwinUNETR. Each spatial dimension of `image_size` must be divisible by 32.
+
+| Key | Type | Required | Default | Description |
+|-----|------|----------|---------|-------------|
+| `name` | `str` | **Yes** | — | Must be `"transmorph3d"` |
+| `feature_size` | `int` | No | `48` | Embedding dimension of the Swin encoder |
+| `depths` | `[int, ...]` | No | `[2,2,2,2]` | Swin blocks per stage |
+| `num_heads` | `[int, ...]` | No | `[3,6,12,24]` | Attention heads per stage |
+| `window_size` | `int` | No | `7` | Local attention window size |
+| `drop_rate` | `float` | No | `0.0` | MLP dropout rate |
+| `attn_drop_rate` | `float` | No | `0.0` | Attention dropout rate |
+| `dropout_path_rate` | `float` | No | `0.0` | Stochastic depth rate |
+| `use_checkpoint` | `bool` | No | `false` | Gradient checkpointing to save memory |
+| `warp_mode` | `str` | No | `"bilinear"` | Warp interpolation |
+| `warp_padding_mode` | `str` | No | `"border"` | Warp padding |
+
 ---
 
 ## `loss` — Loss Function

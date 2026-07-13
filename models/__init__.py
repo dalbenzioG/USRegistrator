@@ -7,6 +7,7 @@ from . import globalnet3d
 from . import localnet3d
 from . import unetreg3d
 from . import voxelmorph3d
+from . import transmorph3d
 
 # Import registry utilities
 from .registry import (
@@ -20,12 +21,14 @@ from .globalnet3d import GlobalNet3D
 from .localnet3d import LocalNet3D
 from .unetreg3d import UNetReg3D
 from .voxelmorph3d import VoxelMorph3D
+from .transmorph3d import TransMorph3D
 
 # Import factory functions
 from .globalnet3d import create_globalnet3d
 from .localnet3d import create_localnet3d
 from .unetreg3d import create_unetreg3d
 from .voxelmorph3d import create_voxelmorph3d
+from .transmorph3d import create_transmorph3d
 
 __all__ = [
     # Registry
@@ -37,9 +40,11 @@ __all__ = [
     "LocalNet3D",
     "UNetReg3D",
     "VoxelMorph3D",
+    "TransMorph3D",
     # Factory functions
     "create_globalnet3d",
     "create_localnet3d",
     "create_unetreg3d",
     "create_voxelmorph3d",
+    "create_transmorph3d",
 ]
