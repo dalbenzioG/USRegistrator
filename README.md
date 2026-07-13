@@ -177,7 +177,8 @@ USRegistrator/
 │   ├── registry.py       # MODEL_REGISTRY, register_model, build_model
 │   ├── globalnet3d.py    # GlobalNet3D
 │   ├── localnet3d.py     # LocalNet3D
-│   └── unetreg3d.py      # UNetReg3D
+│   ├── unetreg3d.py      # UNetReg3D
+│   └── transmorph3d.py   # TransMorph3D (Swin Transformer)
 ├── datasets/             # Dataset generators (modular)
 │   ├── __init__.py       # Registry & re-exports
 │   ├── registry.py       # DATASET_REGISTRY, register_dataset, build_dataset
@@ -216,7 +217,8 @@ USRegistrator/
 ### Models
 
 - **GlobalNet3D**: 3D deformable registration network using MONAI's GlobalNet architecture
-- Returns: `(warped_image, displacement_field)`
+- **TransMorph3D**: TransMorph-style Swin Transformer registration network built on MONAI's SwinUNETR
+- All models return: `(warped_image, displacement_field)`
 
 ### Datasets
 

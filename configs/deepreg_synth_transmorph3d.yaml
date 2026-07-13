@@ -1,0 +1,63 @@
+project: "monai-3d-registration"
+image_size: [64, 64, 64]
+
+train_dataset:
+  name: deepreg_synthetic
+  image_size: [64, 64, 64]
+  num_samples: 4000
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 123
+
+val_dataset:
+  name: deepreg_synthetic
+  image_size: [64, 64, 64]
+  num_samples: 200
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 456
+
+model:
+  name: transmorph3d
+  feature_size: 48
+  depths: [2, 2, 2, 2]
+  num_heads: [3, 6, 12, 24]
+  window_size: 7
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  dropout_path_rate: 0.0
+  use_checkpoint: false
+  warp_mode: bilinear
+  warp_padding_mode: border
+
+loss:
+  name: lncc_dvf
+  kernel_size: 9
+  smooth_nr: 1e-4
+  smooth_dr: 1e-2
+  image_weight: 1.0
+  dvf_weight: 0.5
+
+optimizer:
+  name: Adam
+  lr: 1e-4
+  weight_decay: 1e-5
+
+training:
+  epochs: 200
+  batch_size: 2
+  num_workers: 4
+  amp: true
+  val_every: 1
+  seed: 42
+  save_dir: "checkpoints/TransMorph3D"
+
+wandb:
+  enabled: true
+  project: "deepreg_synth"
+  run_name: "deepreg_synth_TransMorph3D"
+  offline: false
