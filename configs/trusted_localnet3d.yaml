@@ -1,0 +1,81 @@
+# Reference config: TRUSTED CT->US deformable registration with LocalNet3D.
+#
+# LocalNet3D consistently outperforms GlobalNet3D on TRUSTED CT-US in our setup
+# (val_dice ~0.63 -> ~0.78 over the first 10 epochs). This is the recommended
+# starting point for TRUSTED experiments.
+#
+# Run locally (needs TRUSTED data reachable from the manifest paths):
+#   python train.py --config configs/trusted_localnet3d.yaml
+#
+# Run on Modal (data lives on the `kidney-dataset` volume; uses the modal manifest):
+#   modal run --detach train_modal.py::train_one --run-name trusted_localnet_baseline
+#
+# Direction: moving = CT, fixed = US (warp CT into intra-op US space).
+
+project: "trusted-ct-us-localnet"
+image_size: [192, 192, 192]
+
+wandb:
+  enabled: true
+  project: "usregistrator"          # logs to entity anikethvij-personal (never amrita-medicalai)
+  run_name: "trusted_localnet_baseline"
+  offline: false
+
+train_dataset:
+  name: custom_dataset
+  json_file: configs/trusted_manifest.json   # swap to trusted_manifest_modal.json for Modal runs
+  image_size: [192, 192, 192]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+
+val_dataset:
+  name: custom_dataset
+  json_file: configs/trusted_manifest.json
+  image_size: [192, 192, 192]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+
+model:
+  name: localnet3d
+  in_channels: 2
+  num_channel_initial: 8
+  extract_levels: [0, 1, 2, 3]
+  out_channels: 3
+  pooling: true
+  concat_skip: false
+  warp_mode: bilinear
+  warp_padding_mode: border
+
+loss:
+  name: lncc_dice
+  params:
+    kernel_size: 9
+    smooth_nr: 1e-4
+    smooth_dr: 1e-2
+    lncc_weight: 1.0
+    dice_weight: 0.5
+    label_warp_mode: bilinear
+    label_warp_padding_mode: border
+
+optimizer:
+  name: Adam
+  lr: 1e-5
+  weight_decay: 1e-5
+
+training:
+  epochs: 30
+  batch_size: 1
+  num_workers: 0
+  amp: false
+  val_every: 1
+  seed: 42
