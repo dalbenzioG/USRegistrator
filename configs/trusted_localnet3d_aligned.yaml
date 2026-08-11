@@ -76,6 +76,12 @@ loss:
     smooth_dr: 1e-2
     lncc_weight: 1.0
     dice_weight: 0.5
+    # Field regularisation. WITHOUT this the objective has no term penalising a rough
+    # displacement field, and the network tears tissue to gain mask overlap: folding rises
+    # and TRE degrades past the rigid initialisation while Dice still creeps up. Note
+    # smooth_nr/smooth_dr above are LNCC numerical stabilisers, NOT this. Untuned; 0.1
+    # matches the sibling VoxelMorph track and is the primary sweep axis.
+    smooth_weight: 0.1
     label_warp_mode: bilinear
     label_warp_padding_mode: border
 

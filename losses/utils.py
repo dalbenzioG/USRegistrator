@@ -10,8 +10,22 @@ LOSS_REGISTRY: Dict[str, Callable[..., nn.Module]] = {}
 
 
 def register_loss(name: str):
-    """Decorator to register a loss function factory."""
+    """Decorator to register a loss function factory.
+
+    Duplicate names are refused. Two modules in this package both claim `lncc_dice`
+    (`combo.py` and `lncc_dice.py`) and only one is imported, so a silent overwrite here
+    would change the training objective based on import order -- one variant has a
+    field-smoothness term and the other does not.
+    """
     def decorator(fn: Callable[..., nn.Module]):
+        existing = LOSS_REGISTRY.get(name)
+        if existing is not None and existing is not fn:
+            raise ValueError(
+                f"Loss '{name}' is already registered by "
+                f"{existing.__module__}.{existing.__qualname__}; "
+                f"{fn.__module__}.{fn.__qualname__} would silently replace it. "
+                "Register it under a different name."
+            )
         LOSS_REGISTRY[name] = fn
         return fn
 

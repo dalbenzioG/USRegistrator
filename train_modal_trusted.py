@@ -96,6 +96,7 @@ def _apply_overrides(
     lncc_weight: float | None = None,
     dice_weight: float | None = None,
     num_channel_initial: int | None = None,
+    smooth_weight: float | None = None,
     align_shared_grid: bool | None = None,
 ) -> dict:
     cfg["wandb"]["run_name"] = run_name
@@ -116,6 +117,8 @@ def _apply_overrides(
         cfg["loss"]["params"]["dice_weight"] = float(dice_weight)
     if num_channel_initial is not None:
         cfg["model"]["num_channel_initial"] = int(num_channel_initial)
+    if smooth_weight is not None:
+        cfg["loss"]["params"]["smooth_weight"] = float(smooth_weight)
     if align_shared_grid is not None:
         for split in ("train_dataset", "val_dataset"):
             cfg[split]["align_shared_grid"] = bool(align_shared_grid)
@@ -489,8 +492,14 @@ def train_one(
 # --------------------------------------------------------------------------------------
 # Each entry varies exactly one axis from the baseline (lr 1e-5, lncc/dice 1.0/0.5,
 # size 192, channels 8). `big` routes memory-heavy configs to the A100.
+# smooth_weight leads because it is the term that was missing entirely: the unregularised
+# baseline gains ~0.006 Dice while TRE degrades past the rigid initialisation and folding
+# climbs. Until a value is found that keeps TRE below rigid, the other axes are measuring
+# variations of the same failure.
 SWEEP_RUNS = [
-    dict(run_name="trusted_aligned_baseline", lr=1e-5, image_size=192, lncc_weight=1.0, dice_weight=0.5, num_channel_initial=8),
+    dict(run_name="trusted_aligned_baseline", lr=1e-5, image_size=192, lncc_weight=1.0, dice_weight=0.5, num_channel_initial=8, smooth_weight=0.1),
+    dict(run_name="trusted_aligned_sw0p02", smooth_weight=0.02),
+    dict(run_name="trusted_aligned_sw0p5", smooth_weight=0.5),
     dict(run_name="trusted_aligned_lr2e5", lr=2e-5),
     dict(run_name="trusted_aligned_lr5e5", lr=5e-5),
     dict(run_name="trusted_aligned_dice0p3", lncc_weight=1.0, dice_weight=0.3),
@@ -498,7 +507,6 @@ SWEEP_RUNS = [
     dict(run_name="trusted_aligned_sz176", image_size=176),
     dict(run_name="trusted_aligned_sz208", image_size=208, big=True),
     dict(run_name="trusted_aligned_ch12", num_channel_initial=12, big=True),
-    dict(run_name="trusted_aligned_ch16", num_channel_initial=16, big=True),
 ]
 
 
