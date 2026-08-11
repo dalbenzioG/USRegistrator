@@ -567,6 +567,27 @@ def create_custom_dataset(
     if split_name not in {"train", "val"}:
         raise ValueError(f"Unsupported split '{split}'. Expected 'train' or 'val'.")
 
+    # `roi_*` have never been implemented in any version of this factory: they were
+    # accepted and immediately discarded. Silently ignoring `roi_from_labels: true` is
+    # precisely the failure this dataset already suffered once, so refuse instead and point
+    # at the options that do the job. Checked before the manifest is resolved, so a bad
+    # argument fails immediately rather than behind a path error.
+    set_legacy = [
+        key
+        for key, value in (
+            ("roi_from_labels", roi_from_labels),
+            ("roi_margin", roi_margin),
+            ("roi_reference", roi_reference),
+        )
+        if value is not None
+    ]
+    if set_legacy:
+        raise ValueError(
+            f"{', '.join(set_legacy)} were never implemented and are ignored. "
+            "For ROI cropping onto a shared grid use align_shared_grid: true, "
+            "align_reference: <key> and align_margin_mm: <mm> instead."
+        )
+
     cases = _load_manifest_cases(json_file=json_file, split=split_name)
 
     if transforms is None:
