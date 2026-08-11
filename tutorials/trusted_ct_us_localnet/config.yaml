@@ -1,0 +1,92 @@
+# Tutorial config: TRUSTED CT->US deformable registration with LocalNet3D.
+#
+# This is a plain USRegistrator config — nothing tutorial-specific about the format. Run it
+# either way:
+#
+#   python main.py --config tutorials/trusted_ct_us_localnet/config.yaml
+#   python main.py --tutorial trusted_ct_us_localnet --data-root /path/to/split_90_10_new
+#
+# The second form resolves `json_file` for you by scanning `--data-root` and writing a
+# manifest, so you do not have to hand-edit paths. See the README in this directory.
+#
+# Direction: moving = CT, fixed = US (warp the pre-op CT into intra-op US space).
+
+project: "trusted-ct-us-localnet-tutorial"
+image_size: [192, 192, 192]
+
+wandb:
+  enabled: false                    # set true once you have `wandb login` configured
+  project: "USRegistrator"
+  run_name: "trusted_tutorial_localnet3d"
+  offline: false
+
+# ---------------------------------------------------------------------------------------
+# Data. The two `align_*` keys are the whole point of this tutorial: CT and US share a
+# world frame but not a grid, so every volume is resampled onto ONE shared ROI grid before
+# the resize to `image_size`. Turn alignment off and the pair arrives misaligned — initial
+# mask Dice drops from ~0.86 to ~0.58 with no error anywhere.
+# ---------------------------------------------------------------------------------------
+train_dataset: &dataset
+  name: custom_dataset
+  json_file: configs/trusted_manifest_split9010.json   # override with --data-root
+  image_size: [192, 192, 192]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]     # CT is calibrated in HU -> fixed window
+  quantile_range: [0.01, 0.99]     # US is arbitrary -> percentile scaling
+  default_is_ct: false
+  normalize_intensity: true
+  align_shared_grid: true          # <- resample onto one shared grid
+  align_reference: fixed_label     # the US kidney mask defines the ROI grid
+  align_margin_mm: 6.0             # context kept around the organ
+  landmarks_space: lps             # TRUSTED landmark files are LPS world mm
+
+val_dataset:
+  <<: *dataset
+
+# ---------------------------------------------------------------------------------------
+# Model: MONAI LocalNet regressing a dense displacement field, plus a Warp to apply it.
+# `extract_levels` has 4 entries -> the network downsamples by 2^4, so every edge of
+# `image_size` must be divisible by 16 (176, 192, 208 all work; 175 does not).
+# ---------------------------------------------------------------------------------------
+model:
+  name: localnet3d
+  in_channels: 2                   # [moving, fixed] concatenated
+  num_channel_initial: 8
+  extract_levels: [0, 1, 2, 3]
+  out_channels: 3                  # one displacement channel per spatial axis
+  pooling: true
+  concat_skip: false
+  warp_mode: bilinear
+  warp_padding_mode: border
+
+# ---------------------------------------------------------------------------------------
+# Loss: local NCC on intensities + Dice on the warped mask.
+# LNCC tolerates the slowly varying intensity differences of ultrasound; Dice is fully
+# modality-invariant and does most of the useful work across CT/US.
+# ---------------------------------------------------------------------------------------
+loss:
+  name: lncc_dice
+  params:
+    kernel_size: 9
+    smooth_nr: 1e-4
+    smooth_dr: 1e-2
+    lncc_weight: 1.0
+    dice_weight: 0.5
+    label_warp_mode: bilinear
+    label_warp_padding_mode: border
+
+optimizer:
+  name: Adam
+  lr: 1e-5
+  weight_decay: 1e-5
+
+training:
+  epochs: 30
+  batch_size: 1                    # 3D volumes are large; one pair per step is standard
+  num_workers: 4
+  amp: false
+  val_every: 1
+  seed: 42
+  save_dir: checkpoints/trusted_tutorial_localnet3d

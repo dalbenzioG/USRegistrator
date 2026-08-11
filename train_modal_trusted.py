@@ -261,6 +261,36 @@ def align_check_raw(split: str = "val", max_cases: int = 0):
     align_check_raw_remote.remote(split=split, max_cases=max_cases)
 
 
+@app.function(image=image, volumes={"/data": data_volume}, timeout=3600, cpu=4, memory=32768)
+def tutorial_check_remote(align: bool = True):
+    """Run `tutorials/trusted_ct_us_localnet` in --check-only mode against the volume.
+
+    Exercises the tutorial exactly as a user would from the CLI, including the manifest
+    scanner, so the tutorial stays honest about the real data layout.
+    """
+    import subprocess
+    import sys
+
+    os.chdir(REPO_ROOT)
+    command = [
+        sys.executable, "main.py",
+        "--tutorial", "trusted_ct_us_localnet",
+        "--data-root", DATA_ROOT,
+        "--check-only",
+    ]
+    if not align:
+        command.append("--no-align")
+    print(" ".join(command))
+    result = subprocess.run(command, cwd=REPO_ROOT, check=False)
+    if result.returncode != 0:
+        raise RuntimeError(f"main.py exited {result.returncode}")
+
+
+@app.local_entrypoint()
+def tutorial_check(align: bool = True):
+    tutorial_check_remote.remote(align=align)
+
+
 @app.function(image=image, volumes={"/data": data_volume}, timeout=1800, cpu=2, memory=16384)
 def geometry_remote(split: str = "val", max_cases: int = 3):
     """Per-case grid geometry (headers only) plus the kidney centroid distance in mm.
