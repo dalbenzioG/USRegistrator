@@ -17,6 +17,7 @@ from models import build_model
 from losses import build_loss
 from metrics import METRICS, jacobian_determinant
 from metrics.tre import mean_tre
+from metrics.landmarks import tre_mm
 
 
 # -------------------------------------------------------------------------
@@ -183,6 +184,53 @@ def _get_optional_tensor(
     return None
 
 
+def _landmark_geometry(batch: dict) -> dict | None:
+    """Pull world-space landmarks + their grid out of a batch, or None if absent.
+
+    `custom_dataset` emits `moving_landmarks` / `fixed_landmarks` in RAS world mm plus
+    `grid_origin_xyz` / `grid_spacing_xyz` describing the cube they were resampled onto.
+    All four are needed to express TRE in millimetres; without the grid, a displacement in
+    voxels cannot be converted (the ROI cube is anisotropic, so there is no single scale).
+    """
+    required = ("moving_landmarks", "fixed_landmarks", "grid_origin_xyz", "grid_spacing_xyz")
+    values = {key: batch.get(key, None) for key in required}
+    if any(value is None for value in values.values()):
+        return None
+
+    def to_numpy(value):
+        if isinstance(value, torch.Tensor):
+            return value.detach().cpu().numpy()
+        return np.asarray(value)
+
+    return {key: to_numpy(value) for key, value in values.items()}
+
+
+def _batch_tre_mm(ddf: torch.Tensor, geometry: dict) -> tuple[float, float, int]:
+    """Summed TRE (mm) after / before warping over a batch, plus the sample count.
+
+    axis_order="xyz" because `custom_dataset` volumes are RAS-oriented, so tensor spatial
+    axes are (x, y, z) and the DDF channels follow — the reverse of the SimpleITK (z, y, x)
+    arrays `metrics/landmarks.py` defaults to.
+    """
+    after = before = 0.0
+    used = 0
+    for i in range(ddf.shape[0]):
+        result = tre_mm(
+            ddf[i : i + 1],
+            ct_landmarks_world=geometry["moving_landmarks"][i],
+            us_landmarks_world=geometry["fixed_landmarks"][i],
+            bbox_lo_xyz=geometry["grid_origin_xyz"][i],
+            spacing_xyz=geometry["grid_spacing_xyz"][i],
+            axis_order="xyz",
+        )
+        if result["n"] == 0 or not np.isfinite(result["tre_after"]):
+            continue
+        after += result["tre_after"]
+        before += result["tre_before"]
+        used += 1
+    return after, before, used
+
+
 def _compute_registration_loss(
     loss_fn: torch.nn.Module,
     warped: torch.Tensor,
@@ -342,6 +390,9 @@ def evaluate(
     metric_counts = {name: 0 for name in METRICS}
     mtre_total = 0.0
     mtre_count = 0
+    tre_mm_total = 0.0
+    tre_mm_before_total = 0.0
+    tre_mm_count = 0
     visuals = None
 
     for batch_idx, batch in enumerate(dataloader):
@@ -361,6 +412,8 @@ def evaluate(
         moving_points = _get_optional_tensor(batch, device, keys=("moving_points",))
         fixed_points = _get_optional_tensor(batch, device, keys=("fixed_points",))
         has_points = moving_points is not None and fixed_points is not None
+        # World-space landmarks + the grid they live on -> TRE in mm (see _batch_tre_mm).
+        landmark_geometry = _landmark_geometry(batch)
 
         if torch.isnan(moving).any() or torch.isinf(moving).any():
             print("Warning: NaN/Inf detected in moving image (eval). Skipping batch.")
@@ -424,6 +477,12 @@ def evaluate(
             mtre_value = mean_tre(ddf, moving_points.float(), fixed_points.float())
             mtre_total += mtre_value * bs
             mtre_count += bs
+
+        if landmark_geometry is not None:
+            after, before, used = _batch_tre_mm(ddf, landmark_geometry)
+            tre_mm_total += after
+            tre_mm_before_total += before
+            tre_mm_count += used
             
         if batch_idx == 0:
             warped_moving_label_for_vis = warped_moving_label
@@ -459,6 +518,12 @@ def evaluate(
         avg_metrics["mtre"] = mtre_total / mtre_count
     else:
         avg_metrics["mtre"] = float("nan")
+    if tre_mm_count > 0:
+        avg_metrics["tre_mm"] = tre_mm_total / tre_mm_count
+        avg_metrics["tre_mm_before"] = tre_mm_before_total / tre_mm_count
+    else:
+        avg_metrics["tre_mm"] = float("nan")
+        avg_metrics["tre_mm_before"] = float("nan")
     return avg_loss, avg_metrics, visuals
 
 
@@ -466,18 +531,20 @@ def evaluate(
 # Main entry point
 # -------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/deepreg_synth.yaml",
-        help="Path to YAML configuration file.",
-    )
-    args = parser.parse_args()
+def run_training(config_path: str = "configs/deepreg_synth.yaml", cfg: dict | None = None):
+    """Run the full training pipeline for one config.
 
-    cfg = load_config(args.config)
-    print(f"Config path: {args.config}")
+    This is the programmatic entry point: `main.py` and `tutorials/` both call it, so a
+    config can be built in Python and run without going through the CLI.
+
+    Args:
+        config_path: path to a YAML config. Also used for logging when `cfg` is given.
+        cfg: an already-loaded config dict. When provided, `config_path` is not read,
+            which lets callers patch a config in memory before running it.
+    """
+    if cfg is None:
+        cfg = load_config(config_path)
+    print(f"Config path: {config_path}")
     print("---- Full Config ----")
     print(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True))
     print("---------------------")
@@ -719,6 +786,11 @@ def main():
                 metric_str += f", val_ddf_l2 = {last_metrics['ddf_l2_mean']:.4f}"
             if "mtre" in last_metrics and np.isfinite(last_metrics["mtre"]):
                 metric_str += f", val_mtre = {last_metrics['mtre']:.4f}"
+            if "tre_mm" in last_metrics and np.isfinite(last_metrics["tre_mm"]):
+                metric_str += (
+                    f", val_tre_mm = {last_metrics['tre_mm']:.3f}"
+                    f" (rigid {last_metrics['tre_mm_before']:.3f})"
+                )
 
         print(
             f"[Epoch {epoch:03d}/{epochs:03d}] "
@@ -729,5 +801,21 @@ def main():
 
     if wandb_enabled:
         wandb.finish()
+
+    return cfg
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/deepreg_synth.yaml",
+        help="Path to YAML configuration file.",
+    )
+    args = parser.parse_args()
+    run_training(args.config)
+
+
 if __name__ == "__main__":
     main()

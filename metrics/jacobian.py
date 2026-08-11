@@ -79,11 +79,21 @@ def jac_det_min(ddf: Tensor) -> float:
 
 def log_jac_std(ddf: Tensor, eps: float = 1e-6) -> float:
     """
-    Std of log-Jacobian determinant as a smoothness/stability proxy.
+    Std of log-Jacobian determinant over non-folding voxels (Learn2Reg SDlogJ).
+
+    Folding voxels (jac <= 0) have no real log-Jacobian and are *excluded*, which is the
+    standard definition and the one documented for this repo. Clamping them to `eps`
+    instead — as this did previously — gave each folded voxel log(1e-6) = -13.8, so the
+    metric was dominated by the folding fraction that `neg_jac_ratio` already reports:
+    a white-noise field with |u| = 0.36 vox and 1% folding scored 1.55 clamped vs 0.73
+    excluded, while a *smooth* field of the same magnitude scores 0.15 either way.
+    Report SDlogJ alongside `neg_jac_ratio`; neither substitutes for the other.
     """
     jac = jacobian_determinant(ddf)
-    jac = torch.clamp(jac, min=eps)
-    return torch.log(jac).std().item()
+    valid = jac > eps
+    if not bool(valid.any()):
+        return float("nan")
+    return torch.log(jac[valid]).std().item()
 
 
 class NegJacRatio(Metric):

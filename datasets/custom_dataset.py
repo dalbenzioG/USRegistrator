@@ -10,13 +10,16 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from monai.data import Dataset
+from monai.data.utils import affine_to_spacing
 from monai.transforms import (
     Compose,
+    CropForeground,
     EnsureChannelFirstd,
     EnsureTyped,
     LoadImaged,
     MapTransform,
     Orientationd,
+    ResampleToMatch,
     Spacingd,
 )
 
@@ -161,10 +164,18 @@ def _load_landmarks_file(path: str) -> np.ndarray:
 
 
 class LoadLandmarksd(MapTransform):
-    """Load landmarks from a file path or inline coordinate list."""
+    """Load landmarks from a file path or inline coordinate list.
 
-    def __init__(self, keys: Iterable[str]):
+    `space` declares the convention the coordinates are written in. Everything downstream
+    works in RAS (that is what `Orientationd(axcodes="RAS")` leaves the volumes in), so
+    LPS input is negated on x and y. The TRUSTED landmark files (`*_lps.txt`) are LPS.
+    """
+
+    def __init__(self, keys: Iterable[str], space: str = "lps"):
         super().__init__(keys)
+        self.space = str(space).lower()
+        if self.space not in ("lps", "ras"):
+            raise ValueError(f"landmarks_space must be 'lps' or 'ras', got {space!r}")
 
     def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
         d = dict(data)
@@ -191,8 +202,15 @@ class LoadLandmarksd(MapTransform):
                     f"Landmarks in '{key}' must have shape (N, 3). Got shape {arr.shape}."
                 )
 
+            if self.space == "lps":
+                arr = arr * np.array([-1.0, -1.0, 1.0], dtype=np.float32)
+
             d[key] = arr
         return d
+
+
+GRID_ORIGIN_KEY = "grid_origin_xyz"
+GRID_SPACING_KEY = "grid_spacing_xyz"
 
 
 class InterpolateToSized(MapTransform):
@@ -204,8 +222,36 @@ class InterpolateToSized(MapTransform):
         if len(self.spatial_size) != 3:
             raise ValueError(f"spatial_size must have 3 values, got {self.spatial_size}")
 
+    def _rescale_grid(self, d: dict[str, Any], source_shape: tuple[int, int, int]) -> None:
+        """Keep the recorded world grid in step with the resize (half-pixel convention).
+
+        Both interpolation modes map output voxel j to source index (j + 0.5) * s - 0.5
+        with s = N_src / N_out, so the new spacing is s * old and the new origin is the
+        world position of that first output voxel centre.
+        """
+        origin = d.get(GRID_ORIGIN_KEY, None)
+        spacing = d.get(GRID_SPACING_KEY, None)
+        if origin is None or spacing is None:
+            return
+
+        origin = np.asarray(origin, dtype=np.float64)
+        spacing = np.asarray(spacing, dtype=np.float64)
+        # Recorded geometry is (x, y, z); tensor axes are (z, y, x).
+        scale = np.array(
+            [source_shape[2] / self.spatial_size[2],
+             source_shape[1] / self.spatial_size[1],
+             source_shape[0] / self.spatial_size[0]],
+            dtype=np.float64,
+        )
+        d[GRID_ORIGIN_KEY] = (origin + (scale / 2.0 - 0.5) * spacing).astype(np.float32)
+        d[GRID_SPACING_KEY] = (spacing * scale).astype(np.float32)
+
     def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
         d = dict(data)
+        reference = d.get("fixed", d.get("moving", None))
+        if reference is not None:
+            shape = tuple(int(s) for s in torch.as_tensor(reference).shape[-3:])
+            self._rescale_grid(d, shape)
         for key in self.key_iterator(d):
             value = d.get(key, None)
             if value is None:
@@ -221,13 +267,108 @@ class InterpolateToSized(MapTransform):
             if mode == "nearest":
                 resized = F.interpolate(tensor.unsqueeze(0), size=self.spatial_size, mode=mode)
             else:
+                # align_corners=False matches the half-pixel convention `nearest` uses for
+                # the labels. With align_corners=True the image scaled by (N-1)/(M-1) while
+                # its label scaled by N/M — a sub-voxel but systematic image/label shear,
+                # worst at the far edge of each axis.
                 resized = F.interpolate(
                     tensor.unsqueeze(0),
                     size=self.spatial_size,
                     mode=mode,
-                    align_corners=True,
+                    align_corners=False,
                 )
             d[key] = resized.squeeze(0)
+
+        return d
+
+
+class AlignToSharedGridd(MapTransform):
+    """Put every volume of a case on one shared world grid before resizing.
+
+    `InterpolateToSized` stretches each volume's own field of view onto the target
+    cube. When moving and fixed cover different FoVs — as CT and US do, even after
+    co-registration — that squashes them by different factors and destroys the
+    spatial correspondence the affines encode.
+
+    This transform fixes a single target grid per case and resamples everything onto
+    it, so the later resize applies one common scaling:
+
+    1. Crop `reference_key` to its foreground bounding box, padded by `margin_mm`.
+       If the reference is a label/mask, foreground is `> 0`; otherwise it is
+       `> min`. The cropped reference defines the target grid.
+    2. Resample every other key onto that grid via its affine (nearest for
+       label/mask keys, bilinear for images).
+
+    The ROI comes from *one* reference for all keys, so any residual misalignment
+    between moving and fixed survives — unlike cropping each modality to its own
+    mask, which silently re-centres the two and inflates the pre-registration score.
+    """
+
+    def __init__(
+        self,
+        keys: Iterable[str],
+        reference_key: str = "fixed_label",
+        margin_mm: float = 6.0,
+        allow_missing_keys: bool = False,
+    ):
+        super().__init__(keys, allow_missing_keys=allow_missing_keys)
+        self.reference_key = reference_key
+        self.margin_mm = float(margin_mm)
+        if self.reference_key not in tuple(self.keys):
+            raise ValueError(
+                f"reference_key '{self.reference_key}' must be one of the transform keys {tuple(self.keys)}."
+            )
+
+    @staticmethod
+    def _is_discrete(key: str) -> bool:
+        return key.endswith("_label") or key.endswith("_mask")
+
+    def _margin_voxels(self, reference: torch.Tensor) -> list[int]:
+        affine = getattr(reference, "affine", None)
+        if affine is None:
+            return [0, 0, 0]
+        spacing = affine_to_spacing(affine).tolist()
+        return [max(0, int(round(self.margin_mm / max(float(s), 1e-6)))) for s in spacing]
+
+    def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
+        d = dict(data)
+        reference = d.get(self.reference_key, None)
+        if reference is None:
+            raise KeyError(
+                f"AlignToSharedGridd needs '{self.reference_key}' in the case. "
+                "Add it to the manifest or set align_reference to a key that is present."
+            )
+
+        if self._is_discrete(self.reference_key):
+            select_fn = lambda x: x > 0  # noqa: E731 - matches MONAI's select_fn signature
+        else:
+            select_fn = lambda x: x > x.min()  # noqa: E731
+
+        cropper = CropForeground(select_fn=select_fn, margin=self._margin_voxels(reference), allow_smaller=True)
+        target = cropper(reference)
+        d[self.reference_key] = target
+
+        # Record the target grid in world coordinates so downstream code (TRE on
+        # landmarks) can map world mm <-> voxel index. InterpolateToSized keeps these in
+        # step with the resize. The grid has identity direction by construction here:
+        # Orientationd has already put every volume in RAS.
+        affine = getattr(target, "affine", None)
+        if affine is not None:
+            affine = np.asarray(torch.as_tensor(affine).detach().cpu(), dtype=np.float64)
+            d[GRID_SPACING_KEY] = affine_to_spacing(torch.as_tensor(affine)).numpy().astype(np.float32)
+            d[GRID_ORIGIN_KEY] = affine[:3, 3].astype(np.float32)
+
+        for key in self.key_iterator(d):
+            if key == self.reference_key or d.get(key, None) is None:
+                continue
+            if self._is_discrete(key):
+                # Outside the source field of view there is no structure, so background.
+                mode, padding_mode = "nearest", "zeros"
+            else:
+                # "zeros" would mean 0 HU (soft tissue) outside the CT FoV, which the CT
+                # window then maps to mid-grey; replicating the edge is less misleading.
+                mode, padding_mode = "bilinear", "border"
+            d[key] = ResampleToMatch(mode=mode, padding_mode=padding_mode)(d[key], img_dst=target)
 
         return d
 
@@ -312,6 +453,10 @@ def _build_transforms(
     quantile_range: tuple[float, float],
     default_is_ct: bool,
     normalize_intensity: bool,
+    align_shared_grid: bool = False,
+    align_reference: str = "fixed_label",
+    align_margin_mm: float = 6.0,
+    landmarks_space: str = "lps",
 ):
     image_keys = _collect_present_keys(cases, REQUIRED_IMAGE_KEYS + OPTIONAL_IMAGE_KEYS)
     landmark_keys = _collect_present_keys(cases, OPTIONAL_LANDMARK_KEYS)
@@ -327,6 +472,22 @@ def _build_transforms(
     if spacing is not None:
         modes = [_spacing_mode_for_key(key) for key in image_keys]
         transforms.append(Spacingd(keys=image_keys, pixdim=spacing, mode=modes))
+
+    # Put moving and fixed on one shared grid before the resize below, otherwise each
+    # volume's own FoV gets stretched onto the cube by a different factor.
+    if align_shared_grid:
+        if align_reference not in image_keys:
+            raise ValueError(
+                f"align_reference '{align_reference}' is not present in the manifest cases "
+                f"(available image keys: {image_keys})."
+            )
+        transforms.append(
+            AlignToSharedGridd(
+                keys=image_keys,
+                reference_key=align_reference,
+                margin_mm=align_margin_mm,
+            )
+        )
 
     # Multigradicon-style preprocessing path:
     # 1) interpolation to target shape
@@ -344,7 +505,7 @@ def _build_transforms(
         )
 
     if landmark_keys:
-        transforms.append(LoadLandmarksd(keys=landmark_keys))
+        transforms.append(LoadLandmarksd(keys=landmark_keys, space=landmarks_space))
 
     transforms.append(EnsureTyped(keys=image_keys + landmark_keys, dtype=torch.float32, track_meta=False))
     return Compose(transforms)
@@ -361,6 +522,10 @@ def create_custom_dataset(
     ct_window: tuple[float, float] | list[float] = (-1000.0, 1000.0),
     quantile_range: tuple[float, float] | list[float] = (0.01, 0.99),
     default_is_ct: bool = False,
+    align_shared_grid: bool = False,
+    align_reference: str = "fixed_label",
+    align_margin_mm: float = 6.0,
+    landmarks_space: str = "lps",
     # Legacy options retained for config compatibility (unused in multigradicon mode).
     roi_from_labels: bool | None = None,
     roi_margin: int | tuple[int, int, int] | list[int] | None = None,
@@ -389,6 +554,14 @@ def create_custom_dataset(
       - moving_mask, fixed_mask
       - moving_landmarks, fixed_landmarks
       - any metadata fields (kept as-is)
+
+    Alignment: set `align_shared_grid: true` for cross-modality pairs whose volumes
+    share a world frame but not a grid (e.g. TRUSTED CT-in-US-space vs US, which have
+    different FoVs and array shapes). All keys are then resampled onto one ROI grid
+    derived from `align_reference` (padded by `align_margin_mm`) before the resize to
+    `image_size`. Without it each volume's own FoV is stretched onto the cube
+    independently and the pair comes out misaligned. See
+    docs/deepreg-pipeline/05_trusted_data_alignment_issue.md.
     """
     split_name = split.lower()
     if split_name not in {"train", "val"}:
@@ -421,6 +594,10 @@ def create_custom_dataset(
             quantile_range=quantile_tuple,
             default_is_ct=bool(default_is_ct),
             normalize_intensity=normalize_intensity,
+            align_shared_grid=bool(align_shared_grid),
+            align_reference=str(align_reference),
+            align_margin_mm=float(align_margin_mm),
+            landmarks_space=str(landmarks_space),
         )
 
     return Dataset(data=cases, transform=transforms)

@@ -1,0 +1,94 @@
+# TRUSTED CT->US deformable registration with LocalNet3D, on the co-registered split.
+#
+# Differences from configs/trusted_localnet3d.yaml:
+#   * data      -> the co-registered ("in US space") volumes on `split_90_10_new`
+#                  (53 train / 6 val), not the raw `kidney-dataset` volumes
+#   * alignment -> align_shared_grid: true, so moving and fixed are resampled onto one
+#                  shared ROI grid before the resize to image_size. Without it each
+#                  volume's own field of view is stretched onto the cube independently
+#                  and the pair comes out misaligned (init Dice 0.58 instead of 0.86).
+#                  See docs/deepreg-pipeline/05_trusted_data_alignment_issue.md.
+#
+# Run on Modal (data on the `split_90_10_new` volume, mounted at /data):
+#   modal profile activate aniketh
+#   modal run train_modal_trusted.py::align_check          # verify the init Dice first
+#   modal run --detach train_modal_trusted.py::train_one --run-name <name>
+#
+# Direction: moving = CT, fixed = US (warp CT into intra-op US space).
+
+project: "trusted-ct-us-localnet"
+image_size: [192, 192, 192]
+
+wandb:
+  enabled: true
+  project: "USRegistrator"          # entity anikethvij-personal (pinned in the image)
+  run_name: "trusted_localnet_aligned_baseline"
+  offline: false
+
+train_dataset:
+  name: custom_dataset
+  json_file: configs/trusted_manifest_split9010.json
+  image_size: [192, 192, 192]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+  align_shared_grid: true
+  align_reference: fixed_label      # US kidney mask defines the shared ROI grid
+  align_margin_mm: 6.0
+  landmarks_space: lps              # TRUSTED *_lps.txt files are LPS world mm
+
+val_dataset:
+  name: custom_dataset
+  json_file: configs/trusted_manifest_split9010.json
+  image_size: [192, 192, 192]
+  orientation: RAS
+  spacing: null
+  preprocess_style: multigradicon
+  ct_window: [-1000.0, 1000.0]
+  quantile_range: [0.01, 0.99]
+  default_is_ct: false
+  normalize_intensity: true
+  align_shared_grid: true
+  align_reference: fixed_label
+  align_margin_mm: 6.0
+  landmarks_space: lps              # only the val/test split ships landmarks -> val/tre_mm
+
+model:
+  name: localnet3d
+  in_channels: 2
+  num_channel_initial: 8
+  extract_levels: [0, 1, 2, 3]      # 4 levels -> image_size must be divisible by 16
+  out_channels: 3
+  pooling: true
+  concat_skip: false
+  warp_mode: bilinear
+  warp_padding_mode: border
+
+loss:
+  name: lncc_dice
+  params:
+    kernel_size: 9
+    smooth_nr: 1e-4
+    smooth_dr: 1e-2
+    lncc_weight: 1.0
+    dice_weight: 0.5
+    label_warp_mode: bilinear
+    label_warp_padding_mode: border
+
+optimizer:
+  name: Adam
+  lr: 1e-5
+  weight_decay: 1e-5
+
+training:
+  epochs: 30
+  batch_size: 1
+  num_workers: 4
+  amp: false
+  val_every: 1
+  seed: 42
+  save_dir: checkpoints/trusted_localnet_aligned_baseline
