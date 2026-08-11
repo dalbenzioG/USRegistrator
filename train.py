@@ -572,6 +572,7 @@ def run_training(config_path: str = "configs/deepreg_synth.yaml", cfg: dict | No
 
     best_epe = float("inf")
     best_val_loss = float("inf")
+    best_tre_mm = float("inf")
 
     # Datasets / loaders
     validate_dataset_config(cfg["train_dataset"], split_name="train")
@@ -742,6 +743,38 @@ def run_training(config_path: str = "configs/deepreg_synth.yaml", cfg: dict | No
                 print(
                     f"[Checkpoint] Saved best val-loss model to {best_loss_path} "
                     f"(epoch={epoch}, val_loss={best_val_loss:.6f})"
+                )
+
+            # -------------------------
+            # save best by TRE (mm), when the dataset provides landmarks
+            # -------------------------
+            # Selecting on Dice is what let the VoxelMorph run drift to a field that
+            # scored well on overlap while pushing anatomy further out of place than the
+            # rigid initialisation. TRE is the metric that catches that, so when it is
+            # available it gets its own checkpoint. Additive: the val-loss and last
+            # checkpoints above are unchanged.
+            tre_value = metrics.get("tre_mm", float("nan"))
+            if np.isfinite(tre_value) and tre_value < best_tre_mm:
+                best_tre_mm = tre_value
+                best_tre_path = os.path.join(save_dir, "best_tre_mm.pt")
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "scaler_state_dict": scaler.state_dict() if use_amp else None,
+                        "config": cfg,
+                        "train_loss": train_loss,
+                        "val_loss": val_loss,
+                        "metrics": metrics,
+                        "best_tre_mm": best_tre_mm,
+                    },
+                    best_tre_path,
+                )
+                print(
+                    f"[Checkpoint] Saved best TRE model to {best_tre_path} "
+                    f"(epoch={epoch}, val_tre_mm={best_tre_mm:.4f}, "
+                    f"rigid={metrics.get('tre_mm_before', float('nan')):.4f})"
                 )
 
         maybe_wandb_log(wandb_enabled, log_dict)
