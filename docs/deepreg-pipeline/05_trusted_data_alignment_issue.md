@@ -117,6 +117,31 @@ re-centre them and inflate the "before" score, the concern raised in
   method) and are rejected at *app-definition* time, which fails **every** entrypoint in
   the file, not just the big one — so do not add an A100 function "just in case".
 
+### Does the shared-grid step work without the pre-registration?
+
+No — and the failure is informative. `split_90_10_new` holds CT already resampled into US
+space (`*_in_US_space_*`), i.e. a precomputed warp. Running the same check against the
+untouched volumes on `kidney-dataset`
+(`train_modal_trusted.py::align_check_raw`, 5 val cases):
+
+| raw volumes, no pre-registration | initial Dice |
+|---|---|
+| `align_shared_grid: false` | 0.142 ± 0.038 |
+| `align_shared_grid: true` | **0.000 ± 0.000** |
+
+Zero is the correct answer: the US-mask ROI contains no CT kidney whatsoever, so resampling
+the CT onto that grid produces an empty mask. The shared-grid resample *consumes* the
+co-registration encoded in the affines — it cannot manufacture one.
+
+Which also reframes the 0.14 that started this whole investigation. It is not "a bit of
+alignment"; it is **accidental overlap** between two volumes independently squashed into the
+same 192³ cube. A number that looks like partial alignment and means nothing. The 0.142 here
+reproduces it on a different 5-case split, confirming it is an artefact of the squash rather
+than anything about the data.
+
+Practical consequence: the rigid pre-registration is **load-bearing**. The fix in this
+document is necessary but not sufficient — both are required, in that order.
+
 ### Still open
 
 - **TRE covers the val split only.** Landmarks exist for the 6 test/val cases, not the 53
