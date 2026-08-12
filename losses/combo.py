@@ -35,6 +35,7 @@ class LNCCWithDiceLoss(nn.Module):
         smooth_dr: float = 1e-5,
         lncc_weight: float = 1.0,
         dice_weight: float = 1.0,
+        smooth_weight: float = 0.0,
         include_background: bool = True,
         dice_smooth_nr: float = 1e-5,
         dice_smooth_dr: float = 1e-5,
@@ -58,6 +59,7 @@ class LNCCWithDiceLoss(nn.Module):
         self.lncc_weight = float(lncc_weight)
         self.dice_weight = float(dice_weight)
         self.include_background = bool(include_background)
+        self.smooth_weight = float(smooth_weight)
         self.dice_smooth_nr = float(dice_smooth_nr)
         self.dice_smooth_dr = float(dice_smooth_dr)
 
@@ -133,6 +135,19 @@ class LNCCWithDiceLoss(nn.Module):
 
         return fixed_label, warped_moving_label
 
+    @staticmethod
+    def _smoothness(pred_dvf: torch.Tensor) -> torch.Tensor:
+        """Mean squared first difference of the displacement field, per axis.
+
+        Without this term nothing in the objective penalises a rough field: the network
+        can tear tissue apart to gain mask overlap, which shows up as rising folding and a
+        TRE that degrades past the rigid initialisation while Dice still creeps up.
+        """
+        dz = (pred_dvf[:, :, 1:, :, :] - pred_dvf[:, :, :-1, :, :]).pow(2).mean()
+        dy = (pred_dvf[:, :, :, 1:, :] - pred_dvf[:, :, :, :-1, :]).pow(2).mean()
+        dx = (pred_dvf[:, :, :, :, 1:] - pred_dvf[:, :, :, :, :-1]).pow(2).mean()
+        return dz + dy + dx
+
     def forward(
         self,
         warped: torch.Tensor,
@@ -150,6 +165,14 @@ class LNCCWithDiceLoss(nn.Module):
 
         lncc_loss = self.image_loss(warped, fixed)
         total_loss = self.lncc_weight * lncc_loss
+
+        if self.smooth_weight > 0.0:
+            if pred_dvf is None:
+                raise ValueError(
+                    "lncc_dice needs the predicted displacement field to apply "
+                    "smooth_weight; pred_dvf/ddf was not provided."
+                )
+            total_loss = total_loss + self.smooth_weight * self._smoothness(pred_dvf)
 
         if self.dice_weight <= 0.0:
             return total_loss
@@ -175,6 +198,7 @@ def create_lncc_dice_loss(
     smooth_dr: float = 1e-5,
     lncc_weight: float = 1.0,
     dice_weight: float = 1.0,
+    smooth_weight: float = 0.0,
     include_background: bool = True,
     dice_smooth_nr: float = 1e-5,
     dice_smooth_dr: float = 1e-5,
@@ -205,6 +229,7 @@ def create_lncc_dice_loss(
         smooth_dr=smooth_dr,
         lncc_weight=lncc_weight,
         dice_weight=dice_weight,
+        smooth_weight=smooth_weight,
         include_background=include_background,
         dice_smooth_nr=dice_smooth_nr,
         dice_smooth_dr=dice_smooth_dr,
