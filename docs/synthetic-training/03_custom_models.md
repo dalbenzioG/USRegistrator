@@ -332,6 +332,7 @@ Don't implement your own warping — MONAI's `Warp` module handles edge cases (p
 | `globalnet3d` | `GlobalNet3D` | MONAI GlobalNet — global affine-like + deformable |
 | `localnet3d` | `LocalNet3D` | MONAI LocalNet — local deformable only |
 | `unetreg3d` | `UNetReg3D` | Standard UNet encoder-decoder for DDF prediction |
+| `voxelmorph3d` | `VoxelMorph3D` | MONAI VoxelMorph + VoxelMorphUNet — `integration_steps: 0` non-diffeomorphic (CVPR), `> 0` diffeomorphic (MICCAI) |
 
 ### Adding New Models to the Package
 
