@@ -177,7 +177,8 @@ USRegistrator/
 │   ├── registry.py       # MODEL_REGISTRY, register_model, build_model
 │   ├── globalnet3d.py    # GlobalNet3D
 │   ├── localnet3d.py     # LocalNet3D
-│   └── unetreg3d.py      # UNetReg3D
+│   ├── unetreg3d.py      # UNetReg3D
+│   └── voxelmorph3d.py   # VoxelMorph3D
 ├── datasets/             # Dataset generators (modular)
 │   ├── __init__.py       # Registry & re-exports
 │   ├── registry.py       # DATASET_REGISTRY, register_dataset, build_dataset
@@ -216,6 +217,7 @@ USRegistrator/
 ### Models
 
 - **GlobalNet3D**: 3D deformable registration network using MONAI's GlobalNet architecture
+- **VoxelMorph3D**: MONAI VoxelMorph + VoxelMorphUNet. `integration_steps: 0` = non-diffeomorphic CVPR variant, `integration_steps: 7` = diffeomorphic MICCAI variant.
 - Returns: `(warped_image, displacement_field)`
 
 ### Datasets
