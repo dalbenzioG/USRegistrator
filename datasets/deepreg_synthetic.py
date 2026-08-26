@@ -226,16 +226,16 @@ class DeepRegLikeDVFSyntheticGenerator:
                align_corners=False,
         )
 
-       fixed_points = None
-       moving_points = None
+        fixed_points = None
+        moving_points = None
 
-       if fixed_mask is not None:
-           fixed_points = sample_foreground_points(base["fixed_mask"], num_points=8)
-           moving_points = warp_points_with_forward_grid(
-               fixed_points,
-               forward_dvf_grid,
-               self.image_size,
-           )
+        if fixed_mask is not None:
+            fixed_points = sample_foreground_points(base["fixed_mask"], num_points=8)
+            moving_points = warp_points_with_forward_grid(
+                fixed_points,
+                forward_dvf_grid,
+                self.image_size,
+            )
 
         # approximate inverse field for moving -> fixed
         gt_dvf_grid = -forward_dvf_grid
