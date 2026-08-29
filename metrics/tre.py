@@ -17,6 +17,12 @@ def mean_tre(
     moving_points: (B, N, 3), voxel coordinates, assumed order (z, y, x)
     fixed_points: (B, N, 3), voxel coordinates, assumed order (z, y, x)
     """
+    # Under AMP the ddf may be float16 while the points are float32;
+    # grid_sample requires matching dtypes.
+    ddf = ddf.float()
+    moving_points = moving_points.float()
+    fixed_points = fixed_points.float()
+
     B, _, D, H, W = ddf.shape
 
     z = moving_points[..., 0]
