@@ -117,7 +117,7 @@ The `name` field selects the model. All other keys are passed as keyword argumen
 
 ### `transmorph3d`
 
-TransMorph-style Swin Transformer registration network (Chen et al., 2022) built on MONAI's SwinUNETR. Each spatial dimension of `image_size` must be divisible by 32.
+TransMorph-style Swin Transformer registration network (Chen et al., 2022) built on MONAI's SwinUNETR. Each spatial dimension of `image_size` must be divisible by 32 and at least 64 (a 32-voxel dimension collapses to 1 at the SwinUNETR bottleneck and breaks InstanceNorm).
 
 | Key | Type | Required | Default | Description |
 |-----|------|----------|---------|-------------|
