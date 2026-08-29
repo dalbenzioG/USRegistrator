@@ -27,7 +27,9 @@ class TransMorph3D(nn.Module):
       - Warp: applies ddf to the moving image
 
     Note: SwinUNETR downsamples 5x, so each spatial dimension of the
-    input must be divisible by 32 (e.g. 64, 96, 128).
+    input must be divisible by 32 and at least 64 (e.g. 64, 96, 128).
+    A 32-voxel dimension collapses to 1 at the bottleneck, which breaks
+    the InstanceNorm layers.
 
     Inputs:
       moving: (B, 1, D, H, W)
@@ -61,10 +63,10 @@ class TransMorph3D(nn.Module):
 
         self.image_size = [int(s) for s in image_size]
         for dim in self.image_size:
-            if dim % 32 != 0:
+            if dim % 32 != 0 or dim < 64:
                 raise ValueError(
                     f"TransMorph3D requires each spatial dimension to be divisible "
-                    f"by 32, got image_size={self.image_size}."
+                    f"by 32 and at least 64, got image_size={self.image_size}."
                 )
 
         self.net = SwinUNETR(
