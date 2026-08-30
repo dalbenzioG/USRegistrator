@@ -58,6 +58,9 @@ The supervised example uses `deepreg_synthetic`, so this PR also fixes:
   Discrete inverse consistency is approximate, not a guarantee of fold-free fields.
 - TRE evaluates `fixed + ddf(fixed)` against moving landmarks in float32, including
   half-precision model output. Units are voxels, not millimetres.
+- The example's `lncc_dvf` loss calculates LNCC local statistics and supervised
+  MSE in float32 outside autocast; the network still runs with AMP. This avoids
+  low-precision cancellation in the local variance/correlation calculation.
 - `train.run_training(config_path)` makes the existing `main.py` entrypoint usable.
 
 These corrections affect the shared synthetic task and TRE, not only TransMorph.
@@ -83,6 +86,8 @@ nonzero gradients, one-epoch training via the real CLI, optimizer steps, three
 checkpoints and strict loading. It then serializes/reloads the trained state and
 compares loss/EPE/mTRE on the **same captured fixture cases**.
 These captured cases do not alter production dataset policy. Since production
+training is a separate process, the runner's deterministic cuDNN selection only
+controls its in-process checks; no bitwise CUDA guarantee is made. Since production
 validation streams new draws, this is **not** an exact replay of the metrics
 recorded during training. Both metric sets are labelled separately in `summary.json`.
 

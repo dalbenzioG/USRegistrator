@@ -44,6 +44,10 @@ def main():
         parser.error("Output directory is not empty; preserve existing runs")
     output.mkdir(parents=True, exist_ok=True)
     torch.set_num_threads(2)
+    # Control cuDNN selection for the in-process before/after state comparison.
+    # This does not change production training or promise bitwise CUDA reproducibility.
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
     report = {"status": "RUNNING", "purpose": "focused engineering smoke, not model ranking",
               "device": str(device), "amp": device.type == "cuda", "entrypoint": args.entrypoint,
               "gpu_name": torch.cuda.get_device_name(0) if device.type == "cuda" else None,
@@ -119,7 +123,9 @@ def main():
             after_loss, after, _ = evaluate(roundtrip, criterion, DataLoader(cases, batch_size=2),
                                             device, use_amp=cfg["training"]["amp"])
             tolerance = 1e-3 if device.type == "cuda" else 1e-5
-            assert math.isfinite(after_loss) and abs(after_loss - before_loss) <= tolerance
+            assert math.isfinite(after_loss) and abs(after_loss - before_loss) <= tolerance, (
+                f"Roundtrip loss mismatch: before={before_loss}, after={after_loss}, tolerance={tolerance}"
+            )
             for key in ("epe", "mtre"):
                 assert math.isfinite(after[key]) and abs(after[key] - before[key]) <= tolerance
             report["models"][name] = {

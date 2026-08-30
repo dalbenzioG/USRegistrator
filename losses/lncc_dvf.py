@@ -56,15 +56,15 @@ class LNCCWithDVFSupervision(nn.Module):
         pred_dvf: torch.Tensor | None = None,
         gt_dvf: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        # Image similarity component
-        sim_loss = self.image_loss(warped, fixed)
-
-        # DVF MSE supervision
-        dvf_loss = torch.tensor(0.0, device=warped.device)
-        if self.dvf_weight > 0.0 and pred_dvf is not None and gt_dvf is not None:
-            dvf_loss = F.mse_loss(pred_dvf, gt_dvf)
-
-        return self.image_weight * sim_loss + self.dvf_weight * dvf_loss
+        # LNCC subtracts nearby local moments and divides by small variances.
+        # Keep these reductions in float32 even when the network uses AMP.
+        # Casting alone is insufficient: autocast would lower convolution precision.
+        with torch.autocast(device_type=warped.device.type, enabled=False):
+            sim_loss = self.image_loss(warped.float(), fixed.float())
+            dvf_loss = torch.zeros((), device=warped.device, dtype=torch.float32)
+            if self.dvf_weight > 0.0 and pred_dvf is not None and gt_dvf is not None:
+                dvf_loss = F.mse_loss(pred_dvf.float(), gt_dvf.float())
+            return self.image_weight * sim_loss + self.dvf_weight * dvf_loss
 
 
 @register_loss("lncc_dvf")
