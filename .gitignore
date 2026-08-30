@@ -48,3 +48,9 @@ dist/
 *.tmp
 *.temp
 
+# Optional external source and local validation artifacts (not PR contents)
+.third_party/
+.pytest_cache/
+validation_outputs/
+checkpoints/
+

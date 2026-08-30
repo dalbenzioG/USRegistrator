@@ -1,0 +1,35 @@
+name: Original TransMorph validation
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -r requirements-validation.txt -r requirements-transmorph.txt
+      - uses: actions/checkout@v4
+        with:
+          repository: junyuchen245/TransMorph_Transformer_for_Medical_Image_Registration
+          ref: 6357a1d7fc44c36db9b1d1ccaa372409253142cf
+          path: .third_party/TransMorph
+          persist-credentials: false
+      - run: python scripts/check_transmorph_source.py
+      - run: python -m pytest tests -q --junitxml validation_outputs/tests.xml
+      - run: python scripts/validate_transmorph.py --device cpu --output-dir validation_outputs/integration
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: original-transmorph-cpu-evidence
+          path: |
+            validation_outputs/tests.xml
+            validation_outputs/integration/summary.json
+            validation_outputs/integration/*/config.yaml
+            validation_outputs/integration/*/train.log

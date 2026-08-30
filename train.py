@@ -466,18 +466,10 @@ def evaluate(
 # Main entry point
 # -------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/deepreg_synth.yaml",
-        help="Path to YAML configuration file.",
-    )
-    args = parser.parse_args()
-
-    cfg = load_config(args.config)
-    print(f"Config path: {args.config}")
+def run_training(config_path: str):
+    """Shared callable entrypoint; never parse the caller's command-line arguments."""
+    cfg = load_config(config_path)
+    print(f"Config path: {config_path}")
     print("---- Full Config ----")
     print(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True))
     print("---------------------")
@@ -729,5 +721,14 @@ def main():
 
     if wandb_enabled:
         wandb.finish()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="configs/deepreg_synth.yaml",
+                        help="Path to YAML configuration file.")
+    run_training(parser.parse_args().config)
+
+
 if __name__ == "__main__":
     main()
