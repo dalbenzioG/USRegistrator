@@ -85,9 +85,9 @@ The runner checks original-model output geometry against MONAI's sampler, finite
 nonzero gradients, one-epoch training via the real CLI, optimizer steps, three
 checkpoints and strict loading. It then serializes/reloads the trained state and
 compares loss/EPE/mTRE on the **same captured fixture cases**.
-These captured cases do not alter production dataset policy. Since production
-training is a separate process, the runner's deterministic cuDNN selection only
-controls its in-process checks; no bitwise CUDA guarantee is made. Since production
+These captured cases do not alter production dataset policy. The runner's
+deterministic cuDNN selection only controls its in-process checks, not the separate
+training subprocess; no bitwise CUDA guarantee is made. Because production
 validation streams new draws, this is **not** an exact replay of the metrics
 recorded during training. Both metric sets are labelled separately in `summary.json`.
 

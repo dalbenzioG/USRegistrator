@@ -37,10 +37,33 @@ configuration, environment, logs and hashes for each model.
 
 ## Evidence status
 
-Focused-branch final CPU/GPU results will be recorded only after execution and
-artifact verification. Older 42-test results belong to the broader branch, not
-to this PR. Full proof artifacts, notebooks and weights remain outside the source
-diff. No credentials or private messages are included.
+On 2026-08-30, implementation `dcb9feec0e89134bb46f111efb7f9f82754e52db` passed:
+
+- **32 tests locally** on Windows/Python 3.12.13, torch 2.8.0 CPU,
+  torchvision 0.23.0 and MONAI 1.5.1.
+- **32 tests in the Kaggle environment**, followed by CUDA/AMP original-Tiny and
+  small-LocalNet train/save/reload smokes on Tesla T4, torch 2.10.0+cu128,
+  torchvision 0.25.0+cu128 and MONAI 1.5.1. Unit tests are not all GPU tests.
+- Each model completed two optimizer updates. The scale remained 128 and the
+  scaler growth tracker reached 2. Loss/EPE/mTRE roundtrip checks passed at the
+  original absolute tolerance of 1e-3 on GPU and 1e-5 on CPU.
+- CPU `main.py` smokes for both models and an additional actual `train.py` smoke
+  for original Tiny passed. GitHub CI has not run for this unpublished branch.
+
+The T4 x2 setting was not a multi-GPU training test. Source archive SHA-256:
+`daea732029307a831b11561237194365be2c34cd79ff82f9dc390de6fb472950`.
+Downloaded proof archive SHA-256:
+`47d80b59f633da66b45b7b7d1f5bcf017a4a1467761cb639de7e517b90ead8ff`.
+The 13,853,712-byte archive, 19 manifest entries, 50 source files, six training
+checkpoints and two roundtrip state files were verified locally before stopping
+the session. It retains configuration, full environment, test/training logs and
+checkpoint hashes. Package deprecation warnings and preinstalled-package resolver
+conflicts are recorded; this is not a claim that the entire Kaggle environment
+passes `pip check`.
+
+Subsequent changes to the review tip are documentation only. Older 42-test results
+belong to the broader branch, not this PR. Full proof artifacts, notebooks and
+weights remain outside the source diff. No credentials or private messages are included.
 
 Historical weights are unnecessary for a software-integration PR, but necessary
 for reevaluating those exact trained models. Resuming an old training run also
