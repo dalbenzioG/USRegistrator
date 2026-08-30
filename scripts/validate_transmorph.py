@@ -101,7 +101,13 @@ def main():
             assert checkpoint["epoch"] == 1 and math.isfinite(checkpoint["train_loss"])
             assert all(math.isfinite(checkpoint["metrics"][key]) for key in ("epe", "mtre"))
             optimizer_states = checkpoint["optimizer_state_dict"]["state"].values()
-            assert any(float(state.get("step", 0)) > 0 for state in optimizer_states)
+            optimizer_steps = [float(state.get("step", 0)) for state in optimizer_states]
+            max_step = max(optimizer_steps, default=0)
+            scaler_state = checkpoint.get("scaler_state_dict")
+            assert max_step > 0, (
+                f"No optimizer updates for {name}; AMP may have skipped every step. "
+                f"Scaler state: {scaler_state}"
+            )
             restored = build_model(cfg["model"], cfg["image_size"]).to(device)
             restored.load_state_dict(checkpoint["model_state_dict"], strict=True)
             before_loss, before, _ = evaluate(restored, criterion, DataLoader(cases, batch_size=2),
@@ -118,6 +124,7 @@ def main():
                 assert math.isfinite(after[key]) and abs(after[key] - before[key]) <= tolerance
             report["models"][name] = {
                 "status": "PASS", "parameters": parameters, "epochs": 1,
+                "max_optimizer_step": max_step, "amp_scaler_state": scaler_state,
                 "train_samples": 4, "val_samples": 2, "checkpoint_sha256": hashes,
                 "roundtrip_state_sha256": sha(roundtrip_path),
                 "training_validation_metrics": {k: checkpoint["metrics"][k] for k in ("epe", "mtre")},

@@ -35,6 +35,17 @@ def set_seed(seed: int = 42):
     torch.cuda.manual_seed_all(seed)
 
 
+def build_grad_scaler(training_config: dict, use_amp: bool):
+    """Keep PyTorch defaults unless a short run explicitly sets its initial scale."""
+    kwargs = {"enabled": use_amp}
+    if "amp_init_scale" in training_config:
+        scale = float(training_config["amp_init_scale"])
+        if not np.isfinite(scale) or scale <= 0:
+            raise ValueError("training.amp_init_scale must be finite and positive")
+        kwargs["init_scale"] = scale
+    return GradScaler(**kwargs)
+
+
 def _mask_contour(mask_2d: np.ndarray) -> np.ndarray:
     """Approximate mask contour without extra dependencies."""
     mask = mask_2d.astype(bool)
@@ -570,7 +581,7 @@ def run_training(config_path: str):
     else:
         raise ValueError(f"Unsupported optimizer '{optimizer_name}'")
 
-    scaler = GradScaler(enabled=use_amp)
+    scaler = build_grad_scaler(cfg["training"], use_amp)
 
     epochs = cfg["training"]["epochs"]
     val_every = cfg["training"]["val_every"]

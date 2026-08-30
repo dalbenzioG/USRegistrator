@@ -49,3 +49,18 @@ def test_public_api_does_not_parse_host_process_arguments(monkeypatch):
     with pytest.raises(RuntimeError, match="reached config loader"):
         train.run_training("experiment.yaml")
     assert seen == ["experiment.yaml"]
+
+
+@pytest.mark.parametrize("config,use_amp,expected", [
+    ({}, False, {"enabled": False}),
+    ({"amp_init_scale": 128.0}, True, {"enabled": True, "init_scale": 128.0}),
+])
+def test_scaler_configuration_is_opt_in(monkeypatch, config, use_amp, expected):
+    monkeypatch.setattr(train, "GradScaler", lambda **kwargs: kwargs)
+    assert train.build_grad_scaler(config, use_amp) == expected
+
+
+@pytest.mark.parametrize("invalid", [0.0, -1.0, float("inf"), float("nan")])
+def test_scaler_rejects_nonpositive_or_nonfinite_scale(invalid):
+    with pytest.raises(ValueError, match="amp_init_scale must be finite and positive"):
+        train.build_grad_scaler({"amp_init_scale": invalid}, True)

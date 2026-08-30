@@ -25,6 +25,12 @@ seed 42, dataset seeds 123/456 and W&B disabled. CUDA/AMP is selected when CUDA 
 available; otherwise training uses CPU. Choose a fresh `training.save_dir` to
 retain earlier checkpoints. `python train.py --config ...` is also supported.
 
+The two-step smoke explicitly uses `training.amp_init_scale: 128.0`. Initial
+calibration at PyTorch's larger default can skip both steps because of nonfinite
+scaled gradients. Omitting this optional setting preserves PyTorch's default;
+existing configurations are unchanged. The runner requires an actual optimizer
+update and records the optimizer step and scaler state, not just a completed epoch.
+
 The source is not vendored. The loader checks normalized SHA-256 hashes of the
 two executed upstream Python files against commit `6357a1d7fc44c36db9b1d1ccaa372409253142cf`
 before loading, including cached constructions. CRLF/LF conversion is accepted,
