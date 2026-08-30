@@ -7,6 +7,7 @@ from typing import Tuple
 import numpy as np
 import torch
 import torch.nn.functional as F
+from monai.networks.blocks import DVF2DDF, Warp
 
 from .registry import register_dataset
 from .synthetic_ellipsoids import (
@@ -37,42 +38,36 @@ def sample_foreground_points(mask: torch.Tensor, num_points: int = 8) -> torch.T
     return pts.float()
 
 
-def warp_points_with_forward_grid(
+def warp_fixed_points_to_moving(
     points_zyx: torch.Tensor,
-    dvf_grid: torch.Tensor,
-    image_size: tuple[int, int, int],
+    ddf_fixed_to_moving: torch.Tensor,
 ) -> torch.Tensor:
     """
-    points_zyx: (N, 3) voxel coords in (z, y, x)
-    dvf_grid: (1, D, H, W, 3), normalized disp, order (x, y, z)
-    return: (N, 3) moved points in voxel coords, still ordered (z, y, x)
+    Map fixed-grid points to moving space using the registration pullback DDF.
+
+    points_zyx: (N, 3) voxel coordinates in (z, y, x).
+    ddf_fixed_to_moving: (3, D, H, W), voxel displacement in (z, y, x).
+    Returns corresponding moving-space coordinates in (z, y, x).
     """
-    D, H, W = image_size
-
-    z = points_zyx[:, 0]
-    y = points_zyx[:, 1]
-    x = points_zyx[:, 2]
-
-    x_norm = 2.0 * x / max(W - 1, 1) - 1.0
-    y_norm = 2.0 * y / max(H - 1, 1) - 1.0
-    z_norm = 2.0 * z / max(D - 1, 1) - 1.0
-
-    x_idx = ((x_norm + 1.0) * 0.5 * (W - 1)).round().long().clamp(0, W - 1)
-    y_idx = ((y_norm + 1.0) * 0.5 * (H - 1)).round().long().clamp(0, H - 1)
-    z_idx = ((z_norm + 1.0) * 0.5 * (D - 1)).round().long().clamp(0, D - 1)
-
-    disp_xyz = dvf_grid[0, z_idx, y_idx, x_idx, :]
-
-    dx = disp_xyz[:, 0] * ((W - 1) / 2.0)
-    dy = disp_xyz[:, 1] * ((H - 1) / 2.0)
-    dz = disp_xyz[:, 2] * ((D - 1) / 2.0)
-
-    moved_z = z + dz
-    moved_y = y + dy
-    moved_x = x + dx
-
-    moved = torch.stack([moved_z, moved_y, moved_x], dim=1)
-    return moved.float()
+    _, depth, height, width = ddf_fixed_to_moving.shape
+    points_z, points_y, points_x = points_zyx.unbind(dim=-1)
+    grid = torch.stack(
+        [
+            2.0 * points_x / max(width - 1, 1) - 1.0,
+            2.0 * points_y / max(height - 1, 1) - 1.0,
+            2.0 * points_z / max(depth - 1, 1) - 1.0,
+        ],
+        dim=-1,
+    ).view(1, 1, 1, -1, 3)
+    sampled = F.grid_sample(
+        ddf_fixed_to_moving.unsqueeze(0),
+        grid,
+        mode="bilinear",
+        padding_mode="border",
+        align_corners=True,
+    )
+    sampled = sampled.squeeze(2).squeeze(2).permute(0, 2, 1)[0]
+    return (points_zyx + sampled).float()
 
 def normalized_xyz_to_monai_ddf(
     dvf_grid: torch.Tensor,
@@ -96,10 +91,15 @@ def normalized_xyz_to_monai_ddf(
     dy = dvf_grid[0, ..., 1] * ((H - 1) / 2.0)
     dz = dvf_grid[0, ..., 2] * ((D - 1) / 2.0)
 
-    # reorder to (z, y, x) and apply extra scale correction
-    ddf_monai = 0.5 * torch.stack([dz, dy, dx], dim=0)
+    ddf_monai = torch.stack([dz, dy, dx], dim=0)
     return ddf_monai
 
+
+def warp_points_with_forward_grid(points_zyx, dvf_grid, image_size):
+    """Compatibility helper: sample normalized xyz displacements at voxel points."""
+    return warp_fixed_points_to_moving(
+        points_zyx, normalized_xyz_to_monai_ddf(dvf_grid, image_size)
+    )
 
 
 class DeepRegLikeDVFSyntheticGenerator:
@@ -108,14 +108,15 @@ class DeepRegLikeDVFSyntheticGenerator:
 
     Produces:
       - fixed: base ellipsoid anatomy
-      - moving: fixed warped by a random smooth forward DVF
-      - dvf: ground-truth DVF for warping moving -> fixed
+      - moving: fixed sampled through exp(+velocity)
+      - dvf: exp(-velocity), a fixed-grid pullback DDF for sampling moving
 
     Conventions:
       - internal generation uses grid_sample normalized coordinates
-      - returned dvf is converted to voxel-like displacement magnitude
+      - returned dvf has voxel displacement units
       - returned dvf is in MONAI-side channel order (z, y, x), shape = (3, D, H, W)
-      - moving -> fixed GT field is approximated as negative of the forward field
+      - both directions integrate opposite stationary velocity fields
+      - finite resolution/interpolation means inverse consistency is approximate
     """
 
     def __init__(
@@ -142,6 +143,9 @@ class DeepRegLikeDVFSyntheticGenerator:
         )
 
         self.rng = np.random.RandomState(seed)
+        self.warp = Warp(mode="bilinear", padding_mode="border")
+        self.warp_nearest = Warp(mode="nearest", padding_mode="border")
+        self.integrate = DVF2DDF(num_steps=7, mode="bilinear", padding_mode="border")
 
         # grid_sample 3D expects last dim order = (x, y, z)
         D, H, W = self.image_size
@@ -195,68 +199,40 @@ class DeepRegLikeDVFSyntheticGenerator:
         return self.num_samples
 
     def get_sample(self) -> dict:
-        # fixed image
+        # Preserve upstream streaming samples; this PR changes geometry, not RNG policy.
         base = self.base_generator.get_sample()
-        fixed = base["fixed"].unsqueeze(0)  # (1, 1, D, H, W)
+        fixed = base["fixed"].unsqueeze(0)
+        fixed_mask = base.get("fixed_mask")
+        if fixed_mask is not None:
+            fixed_mask = fixed_mask.unsqueeze(0)
 
-        fixed_mask = None
-        if "fixed_mask" in base:
-            fixed_mask = base["fixed_mask"].unsqueeze(0)  # (1, 1, D, H, W)
-
-        # forward field used to synthesize moving from fixed
-        forward_dvf_grid = self._random_dvf()  # (1, D, H, W, 3), (x,y,z)
-
-        # moving = fixed warped by forward field
-        forward_grid = self.identity_grid + forward_dvf_grid
-        moving = F.grid_sample(
-            fixed,
-            forward_grid,
-            mode="bilinear",
-            padding_mode="border",
-            align_corners=False,
-        )  # (1, 1, D, H, W)
+        velocity_grid = self._random_dvf()
+        velocity = normalized_xyz_to_monai_ddf(
+            velocity_grid, self.image_size
+        ).unsqueeze(0)
+        moving_to_fixed = self.integrate(velocity)
+        moving = self.warp(fixed, moving_to_fixed)
+        gt_dvf = self.integrate(-velocity)
 
         moving_mask = None
         if fixed_mask is not None:
-           moving_mask = F.grid_sample(
-               fixed_mask.float(),
-               forward_grid,
-               mode="nearest",
-               padding_mode="border",
-               align_corners=False,
-        )
+            moving_mask = self.warp_nearest(fixed_mask.float(), moving_to_fixed)
 
-       fixed_points = None
-       moving_points = None
+        fixed_points = None
+        moving_points = None
+        if fixed_mask is not None:
+            fixed_points = sample_foreground_points(
+                base["fixed_mask"], num_points=8
+            )
+            moving_points = warp_fixed_points_to_moving(fixed_points, gt_dvf[0])
 
-       if fixed_mask is not None:
-           fixed_points = sample_foreground_points(base["fixed_mask"], num_points=8)
-           moving_points = warp_points_with_forward_grid(
-               fixed_points,
-               forward_dvf_grid,
-               self.image_size,
-           )
-
-        # approximate inverse field for moving -> fixed
-        gt_dvf_grid = -forward_dvf_grid
-
-        # convert normalized grid displacement to MONAI-side supervised DDF
-        gt_dvf = normalized_xyz_to_monai_ddf(gt_dvf_grid, self.image_size)
-
-        sample = {
-           "moving": moving[0],  # (1, D, H, W)
-           "fixed": fixed[0],    # (1, D, H, W)
-            "dvf": gt_dvf,        # (3, D, H, W)
-        }
-
+        sample = {"moving": moving[0], "fixed": fixed[0], "dvf": gt_dvf[0]}
         if fixed_mask is not None and moving_mask is not None:
             sample["moving_mask"] = moving_mask[0]
             sample["fixed_mask"] = fixed_mask[0]
-
         if fixed_points is not None and moving_points is not None:
             sample["fixed_points"] = fixed_points
             sample["moving_points"] = moving_points
-
         return sample
 
 

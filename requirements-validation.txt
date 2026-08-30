@@ -1,0 +1,6 @@
+-r requirements.txt
+monai==1.5.1
+numpy==2.2.6
+PyYAML==6.0.2
+wandb==0.23.0
+pytest==8.4.2

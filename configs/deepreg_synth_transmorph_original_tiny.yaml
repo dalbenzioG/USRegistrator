@@ -1,0 +1,54 @@
+# Small engineering smoke only; not a convergence or accuracy benchmark.
+project: monai-3d-registration
+image_size: [64, 64, 64]
+
+train_dataset:
+  name: deepreg_synthetic
+  image_size: [64, 64, 64]
+  num_samples: 4
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 123
+
+val_dataset:
+  name: deepreg_synthetic
+  image_size: [64, 64, 64]
+  num_samples: 2
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 456
+
+model:
+  name: transmorph_original3d
+  variant: tiny
+
+loss:
+  name: lncc_dvf
+  kernel_size: 9
+  smooth_nr: 1e-4
+  smooth_dr: 1e-2
+  image_weight: 0.25
+  dvf_weight: 1.0
+
+optimizer:
+  name: Adam
+  lr: 2e-4
+  weight_decay: 1e-5
+
+training:
+  epochs: 1
+  batch_size: 2
+  num_workers: 0
+  amp: true
+  # Avoid spending both smoke-test steps calibrating the default large scale.
+  amp_init_scale: 128.0
+  val_every: 1
+  seed: 42
+  save_dir: checkpoints/TransMorphOriginalTiny
+
+wandb:
+  enabled: false
