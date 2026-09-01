@@ -332,7 +332,7 @@ Don't implement your own warping — MONAI's `Warp` module handles edge cases (p
 | `globalnet3d` | `GlobalNet3D` | MONAI GlobalNet — global affine-like + deformable |
 | `localnet3d` | `LocalNet3D` | MONAI LocalNet — local deformable only |
 | `unetreg3d` | `UNetReg3D` | Standard UNet encoder-decoder for DDF prediction |
-| `transmorph3d` | `TransMorph3D` | TransMorph-style Swin Transformer encoder + CNN decoder (MONAI SwinUNETR) |
+| `transmorph3d` | `TransMorph3D` | TransMorph: Swin encoder + CNN decoder (MONAI Swin blocks) |
 
 ### Adding New Models to the Package
 
