@@ -117,21 +117,41 @@ The `name` field selects the model. All other keys are passed as keyword argumen
 
 ### `transmorph3d`
 
-TransMorph-style Swin Transformer registration network (Chen et al., 2022) built on MONAI's SwinUNETR. Each spatial dimension of `image_size` must be divisible by 32 and at least 64 (a 32-voxel dimension collapses to 1 at the SwinUNETR bottleneck and breaks InstanceNorm).
+TransMorph (Chen et al., 2022), assembled from MONAI's Swin building blocks
+(`PatchEmbed`, `BasicLayer`, `PatchMerging`) plus `Convolution`, `UpSample` and
+`Warp`. Parameter counts match the reference implementation exactly for all four
+variants. Each spatial dimension of `image_size` must be a positive multiple of
+32 (patch size 4 and three patch-merging steps).
+
+Where a stage's feature map is smaller than `window_size`, MONAI clamps the
+window and drops the cyclic shift, per the official Swin Transformer; the
+reference instead zero-pads up to the window. Outputs are bit-identical in every
+stage whose resolution exceeds `window_size`, and differ in the deeper stages.
+The model warns and names the affected stages.
 
 | Key | Type | Required | Default | Description |
 |-----|------|----------|---------|-------------|
 | `name` | `str` | **Yes** | — | Must be `"transmorph3d"` |
-| `feature_size` | `int` | No | `48` | Embedding dimension of the Swin encoder |
-| `depths` | `[int, ...]` | No | `[2,2,2,2]` | Swin blocks per stage |
-| `num_heads` | `[int, ...]` | No | `[3,6,12,24]` | Attention heads per stage |
-| `window_size` | `int` | No | `7` | Local attention window size |
+| `variant` | `str` | No | `"base"` | `tiny` \| `small` \| `base` \| `large` |
+| `embed_dim` | `int` | No | preset | Overrides the variant's embedding dimension |
+| `depths` | `[int, ...]` | No | preset | Overrides Swin blocks per stage (4 entries) |
+| `num_heads` | `[int, ...]` | No | preset | Overrides attention heads per stage (4 entries) |
+| `window_size` | `[int, int, int]` | No | `[5, 6, 7]` | Local attention window |
+| `mlp_ratio` | `float` | No | `4.0` | MLP hidden-dim ratio |
+| `qkv_bias` | `bool` | No | `false` | Learnable qkv bias |
 | `drop_rate` | `float` | No | `0.0` | MLP dropout rate |
 | `attn_drop_rate` | `float` | No | `0.0` | Attention dropout rate |
-| `dropout_path_rate` | `float` | No | `0.0` | Stochastic depth rate |
+| `drop_path_rate` | `float` | No | `0.3` | Stochastic depth rate |
+| `patch_norm` | `bool` | No | `true` | LayerNorm after patch embedding |
 | `use_checkpoint` | `bool` | No | `false` | Gradient checkpointing to save memory |
+| `reg_head_chan` | `int` | No | `16` | Channels entering the ddf head |
+| `if_transskip` | `bool` | No | `true` | Use encoder-stage skip connections |
+| `if_convskip` | `bool` | No | `true` | Use input-resolution conv skip paths |
 | `warp_mode` | `str` | No | `"bilinear"` | Warp interpolation |
-| `warp_padding_mode` | `str` | No | `"border"` | Warp padding |
+| `warp_padding_mode` | `str` | No | `"zeros"` | Warp padding (reference uses zeros) |
+
+Variant parameter counts (verified against the reference): tiny 244,527;
+small 11,757,195; base 46,771,251; large 108,343,907.
 
 ---
 

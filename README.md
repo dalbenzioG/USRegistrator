@@ -179,7 +179,7 @@ USRegistrator/
 │   ├── localnet3d.py     # LocalNet3D
 │   ├── unetreg3d.py      # UNetReg3D
 │   ├── voxelmorph3d.py   # VoxelMorph3D
-│   └── transmorph3d.py   # TransMorph3D (Swin Transformer)
+│   └── transmorph3d.py   # TransMorph3D (Swin Transformer, MONAI blocks)
 ├── datasets/             # Dataset generators (modular)
 │   ├── __init__.py       # Registry & re-exports
 │   ├── registry.py       # DATASET_REGISTRY, register_dataset, build_dataset
@@ -219,7 +219,7 @@ USRegistrator/
 
 - **GlobalNet3D**: 3D deformable registration network using MONAI's GlobalNet architecture
 - **VoxelMorph3D**: MONAI VoxelMorph + VoxelMorphUNet. `integration_steps: 0` = non-diffeomorphic CVPR variant, `integration_steps: 7` = diffeomorphic MICCAI variant.
-- **TransMorph3D**: TransMorph-style Swin Transformer registration network built on MONAI's SwinUNETR
+- **TransMorph3D**: TransMorph (Chen et al., 2022), assembled from MONAI Swin blocks
 - All models return: `(warped_image, displacement_field)`
 
 ### Datasets
