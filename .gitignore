@@ -48,3 +48,5 @@ dist/
 *.tmp
 *.temp
 
+# Optional external source (not PR contents)
+.third_party/

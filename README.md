@@ -251,5 +251,12 @@ To disable W&B, you can modify `train.py` to skip `wandb.init()`.
 
 ## Contributing
 
+### Optional original TransMorph
+
+Use `model.name: transmorph_original3d` to load a pinned original TransMorph
+implementation. See [setup, focused tests and current CLI limitations](docs/transmorph-validation.md).
+Only the Tiny variant at 64³ received real-model validation. Existing core models
+do not require the source checkout or optional TransMorph dependencies.
+
 [Add contribution guidelines if applicable]
 
