@@ -1,0 +1,63 @@
+project: "monai-3d-registration"
+image_size: [64, 64, 64]
+
+train_dataset:
+  name: deepreg_synthetic
+  image_size: [64, 64, 64]
+  num_samples: 4000
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 123
+
+val_dataset:
+  name: deepreg_synthetic
+  image_size: [64, 64, 64]
+  num_samples: 200
+  max_disp: 0.2
+  cp_spacing: 8
+  noise_std: 0.03
+  smooth: true
+  seed: 456
+
+
+model:
+  name: voxelmorph3d
+  in_channels: 2
+  unet_out_channels: 32
+  channels: [16, 32, 32, 32, 32, 32]
+  final_conv_channels: [16, 16]
+  # 0 = non-diffeomorphic (CVPR) variant, DDF is the raw backbone field.
+  # 7 = diffeomorphic (MICCAI) variant via scaling-and-squaring.
+  integration_steps: 0
+  half_res: false
+
+loss:
+  name: lncc_dvf
+  kernel_size: 9
+  smooth_nr: 1e-4
+  smooth_dr: 1e-2
+  image_weight: 1.0
+  dvf_weight: 0.1
+
+
+optimizer:
+  name: Adam
+  lr: 1e-4
+  weight_decay: 1e-5
+
+training:
+  epochs: 50
+  batch_size: 2
+  num_workers: 4
+  amp: true
+  val_every: 1
+  seed: 42
+  save_dir: "checkpoints/VoxelMorph3D"
+
+wandb:
+  enabled: true
+  project: "usregistrator"
+  run_name: "deepreg_synth_VoxelMorph3D"
+  offline: true
