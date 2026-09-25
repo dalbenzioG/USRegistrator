@@ -218,13 +218,13 @@ class DeepRegLikeDVFSyntheticGenerator:
 
         moving_mask = None
         if fixed_mask is not None:
-           moving_mask = F.grid_sample(
-               fixed_mask.float(),
-               forward_grid,
-               mode="nearest",
-               padding_mode="border",
-               align_corners=False,
-        )
+            moving_mask = F.grid_sample(
+                fixed_mask.float(),
+                forward_grid,
+                mode="nearest",
+                padding_mode="border",
+                align_corners=False,
+            )
 
         fixed_points = None
         moving_points = None
