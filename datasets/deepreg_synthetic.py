@@ -96,8 +96,8 @@ def normalized_xyz_to_monai_ddf(
     dy = dvf_grid[0, ..., 1] * ((H - 1) / 2.0)
     dz = dvf_grid[0, ..., 2] * ((D - 1) / 2.0)
 
-    # reorder to (z, y, x) and apply extra scale correction
-    ddf_monai = 0.5 * torch.stack([dz, dy, dx], dim=0)
+    # reorder to (z, y, x); the components above are already in voxel units
+    ddf_monai = torch.stack([dz, dy, dx], dim=0)
     return ddf_monai
 
 
