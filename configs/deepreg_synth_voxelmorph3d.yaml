@@ -24,7 +24,6 @@ val_dataset:
 
 model:
   name: voxelmorph3d
-  in_channels: 2
   unet_out_channels: 32
   channels: [16, 32, 32, 32, 32, 32]
   final_conv_channels: [16, 16]
