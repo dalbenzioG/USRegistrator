@@ -467,7 +467,7 @@ def evaluate(
 # -------------------------------------------------------------------------
 
 def run_training(config_path: str):
-    """Run the full training pipeline from a YAML config file."""
+    """Run the full training pipeline from a YAML config path."""
     cfg = load_config(config_path)
     print(f"Config path: {config_path}")
     print("---- Full Config ----")

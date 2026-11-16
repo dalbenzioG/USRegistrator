@@ -218,13 +218,13 @@ class DeepRegLikeDVFSyntheticGenerator:
 
         moving_mask = None
         if fixed_mask is not None:
-           moving_mask = F.grid_sample(
-               fixed_mask.float(),
-               forward_grid,
-               mode="nearest",
-               padding_mode="border",
-               align_corners=False,
-        )
+            moving_mask = F.grid_sample(
+                fixed_mask.float(),
+                forward_grid,
+                mode="nearest",
+                padding_mode="border",
+                align_corners=False,
+            )
 
         fixed_points = None
         moving_points = None
@@ -244,8 +244,8 @@ class DeepRegLikeDVFSyntheticGenerator:
         gt_dvf = normalized_xyz_to_monai_ddf(gt_dvf_grid, self.image_size)
 
         sample = {
-           "moving": moving[0],  # (1, D, H, W)
-           "fixed": fixed[0],    # (1, D, H, W)
+            "moving": moving[0],  # (1, D, H, W)
+            "fixed": fixed[0],    # (1, D, H, W)
             "dvf": gt_dvf,        # (3, D, H, W)
         }
 

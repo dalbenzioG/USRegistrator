@@ -39,7 +39,9 @@ dist/
 # Logs
 *.log
 
-# Model checkpoints (uncomment if you want to exclude saved models)
+# Model checkpoints (training save_dir outputs; can be several hundred MB per run)
+checkpoints/
+# Uncomment to exclude saved models everywhere, not just under checkpoints/
 # *.pth
 # *.pt
 # *.ckpt
