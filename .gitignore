@@ -50,3 +50,4 @@ checkpoints/
 *.tmp
 *.temp
 
+tutorials/*/manifest.generated.json

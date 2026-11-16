@@ -1,0 +1,549 @@
+{
+  "train": [
+    {
+      "case_id": "200R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/200R_imgCT_in_US_space_crop592x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/200R_seg_in_US_space_crop592x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/200R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/200R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "206R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/206R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/206R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/206R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/206R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "220R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/220R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/220R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/220R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/220R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "250L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/250L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/250L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/250L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/250L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "250R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/250R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/250R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/250R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/250R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "258L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/258L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/258L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/258L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/258L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "263L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/263L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/263L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/263L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/263L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "263R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/263R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/263R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/263R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/263R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "283L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/283L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/283L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/283L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/283L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "314L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/314L_imgCT_in_US_space_crop704x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/314L_seg_in_US_space_crop704x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/314L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/314L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "314R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/314R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/314R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/314R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/314R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "329L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/329L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/329L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/329L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/329L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "329R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/329R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/329R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/329R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/329R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "348R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/348R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/348R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/348R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/348R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "398R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/398R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/398R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/398R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/398R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "399R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/399R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/399R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/399R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/399R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "418L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/418L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/418L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/418L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/418L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "418R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/418R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/418R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/418R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/418R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "443R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/443R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/443R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/443R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/443R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "466L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/466L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/466L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/466L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/466L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "466R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/466R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/466R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/466R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/466R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "506L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/506L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/506L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/506L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/506L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "506R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/506R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/506R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/506R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/506R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "510L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/510L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/510L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/510L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/510L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "510R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/510R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/510R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/510R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/510R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "517L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/517L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/517L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/517L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/517L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "517R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/517R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/517R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/517R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/517R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "532L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/532L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/532L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/532L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/532L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "532R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/532R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/532R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/532R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/532R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "561R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/561R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/561R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/561R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/561R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "579L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/579L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/579L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/579L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/579L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "579R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/579R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/579R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/579R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/579R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "592R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/592R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/592R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/592R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/592R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "610L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/610L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/610L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/610L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/610L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "636R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/636R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/636R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/636R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/636R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "641L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/641L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/641L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/641L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/641L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "680L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/680L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/680L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/680L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/680L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "701L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/701L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/701L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/701L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/701L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "701R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/701R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/701R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/701R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/701R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "704L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/704L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/704L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/704L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/704L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "711L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/711L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/711L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/711L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/711L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "716R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/716R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/716R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/716R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/716R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "735R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/735R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/735R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/735R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/735R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "738R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/738R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/738R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/738R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/738R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "755L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/755L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/755L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/755L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/755L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "755R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/755R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/755R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/755R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/755R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "794L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/794L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/794L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/794L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/794L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "794R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/794R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/794R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/794R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/794R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "861L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/861L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/861L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/861L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/861L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "861R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/861R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/861R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/861R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/861R_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "915L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/915L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/915L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/915L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/915L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "948L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/948L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/948L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/948L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/948L_maskUS_crop.nii.gz"
+    },
+    {
+      "case_id": "948R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/train/CT_images/948R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/train/CT_masks/948R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/train/US_images/948R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/train/US_masks/948R_maskUS_crop.nii.gz"
+    }
+  ],
+  "val": [
+    {
+      "case_id": "206L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/test/CT_images/206L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/test/CT_masks/206L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/test/US_images/206L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/test/US_masks/206L_maskUS_crop.nii.gz",
+      "moving_landmarks": "/data/split_90_10_new/test/landmarks_lps/206L_ldkCT_aligned_lps.txt",
+      "fixed_landmarks": "/data/split_90_10_new/test/landmarks_lps/206L_ldkUS_lps.txt"
+    },
+    {
+      "case_id": "258R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/test/CT_images/258R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/test/CT_masks/258R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/test/US_images/258R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/test/US_masks/258R_maskUS_crop.nii.gz",
+      "moving_landmarks": "/data/split_90_10_new/test/landmarks_lps/258R_ldkCT_aligned_lps.txt",
+      "fixed_landmarks": "/data/split_90_10_new/test/landmarks_lps/258R_ldkUS_lps.txt"
+    },
+    {
+      "case_id": "348L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/test/CT_images/348L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/test/CT_masks/348L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/test/US_images/348L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/test/US_masks/348L_maskUS_crop.nii.gz",
+      "moving_landmarks": "/data/split_90_10_new/test/landmarks_lps/348L_ldkCT_aligned_lps.txt",
+      "fixed_landmarks": "/data/split_90_10_new/test/landmarks_lps/348L_ldkUS_lps.txt"
+    },
+    {
+      "case_id": "371R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/test/CT_images/371R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/test/CT_masks/371R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/test/US_images/371R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/test/US_masks/371R_maskUS_crop.nii.gz",
+      "moving_landmarks": "/data/split_90_10_new/test/landmarks_lps/371R_ldkCT_aligned_lps.txt",
+      "fixed_landmarks": "/data/split_90_10_new/test/landmarks_lps/371R_ldkUS_lps.txt"
+    },
+    {
+      "case_id": "641R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/test/CT_images/641R_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/test/CT_masks/641R_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/test/US_images/641R_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/test/US_masks/641R_maskUS_crop.nii.gz",
+      "moving_landmarks": "/data/split_90_10_new/test/landmarks_lps/641R_ldkCT_aligned_lps.txt",
+      "fixed_landmarks": "/data/split_90_10_new/test/landmarks_lps/641R_ldkUS_lps.txt"
+    },
+    {
+      "case_id": "721L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/split_90_10_new/test/CT_images/721L_imgCT_in_US_space_crop576x576.nii.gz",
+      "moving_label": "/data/split_90_10_new/test/CT_masks/721L_seg_in_US_space_crop576x576.nii.gz",
+      "fixed": "/data/split_90_10_new/test/US_images/721L_imgUS_crop.nii.gz",
+      "fixed_label": "/data/split_90_10_new/test/US_masks/721L_maskUS_crop.nii.gz",
+      "moving_landmarks": "/data/split_90_10_new/test/landmarks_lps/721L_ldkCT_aligned_lps.txt",
+      "fixed_landmarks": "/data/split_90_10_new/test/landmarks_lps/721L_ldkUS_lps.txt"
+    }
+  ]
+}

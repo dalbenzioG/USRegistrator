@@ -1,0 +1,483 @@
+{
+  "train": [
+    {
+      "case_id": "200R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/200R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/200R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/200R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/200R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "206R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/206R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/206R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/206R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/206R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "220R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/220R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/220R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/220R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/220R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "250R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/250R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/250R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/250R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/250R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "258L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/258L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/258L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/258L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/258L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "263L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/263L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/263L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/263L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/263L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "263R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/263R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/263R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/263R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/263R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "283L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/283L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/283L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/283L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/283L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "314R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/314R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/314R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/314R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/314R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "329L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/329L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/329L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/329L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/329L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "329R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/329R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/329R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/329R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/329R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "348R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/348R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/348R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/348R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/348R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "398R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/398R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/398R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/398R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/398R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "399R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/399R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/399R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/399R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/399R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "418L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/418L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/418L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/418L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/418L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "418R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/418R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/418R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/418R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/418R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "443R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/443R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/443R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/443R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/443R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "466L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/466L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/466L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/466L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/466L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "466R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/466R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/466R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/466R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/466R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "506R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/506R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/506R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/506R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/506R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "510R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/510R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/510R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/510R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/510R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "517R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/517R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/517R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/517R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/517R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "532L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/532L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/532L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/532L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/532L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "532R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/532R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/532R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/532R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/532R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "561R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/561R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/561R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/561R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/561R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "579L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/579L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/579L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/579L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/579L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "579R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/579R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/579R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/579R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/579R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "592R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/592R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/592R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/592R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/592R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "610L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/610L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/610L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/610L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/610L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "636R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/636R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/636R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/636R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/636R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "641L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/641L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/641L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/641L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/641L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "680L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/680L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/680L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/680L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/680L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "701L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/701L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/701L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/701L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/701L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "701R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/701R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/701R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/701R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/701R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "704L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/704L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/704L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/704L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/704L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "711L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/711L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/711L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/711L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/711L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "716R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/716R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/716R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/716R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/716R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "735R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/735R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/735R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/735R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/735R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "738R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/738R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/738R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/738R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/738R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "755L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/755L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/755L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/755L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/755L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "755R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/755R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/755R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/755R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/755R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "794L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/794L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/794L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/794L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/794L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "794R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/794R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/794R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/794R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/794R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "861L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/861L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/861L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/861L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/861L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "861R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/861R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/861R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/861R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/861R_maskUS.nii.gz"
+    },
+    {
+      "case_id": "915L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/915L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/915L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/915L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/915L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "948L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/948L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/948L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/948L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/948L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "948R",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/948R_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/948R_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/948R_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/948R_maskUS.nii.gz"
+    }
+  ],
+  "val": [
+    {
+      "case_id": "250L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/250L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/250L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/250L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/250L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "314L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/314L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/314L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/314L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/314L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "506L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/506L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/506L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/506L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/506L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "510L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/510L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/510L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/510L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/510L_maskUS.nii.gz"
+    },
+    {
+      "case_id": "517L",
+      "moving_modality": "CT",
+      "fixed_modality": "US",
+      "moving": "/data/Kidney_Dataset/TRUSTED/CT_images/517L_imgCT.nii.gz",
+      "fixed": "/data/Kidney_Dataset/TRUSTED/US_images/517L_imgUS.nii.gz",
+      "moving_label": "/data/Kidney_Dataset/TRUSTED/CT_masks/517L_seg.nii.gz",
+      "fixed_label": "/data/Kidney_Dataset/TRUSTED/US_masks/517L_maskUS.nii.gz"
+    }
+  ]
+}
